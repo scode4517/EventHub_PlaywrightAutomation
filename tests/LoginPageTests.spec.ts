@@ -8,6 +8,7 @@ import { HomePage } from '../pageObjects/HomePage.spec';
 test('Login page visual test', { tag: '@LoginTest' }, async ({ page }) => {
 	const loginPage = new LoginPage(page);
 	await loginPage.goto();
+	await loginPage.loginPageVisualTest();
 });
 
 test('Valid login test', { tag: '@LoginTest' }, async ({ page }) => {
