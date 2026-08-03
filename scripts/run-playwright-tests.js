@@ -1,22 +1,30 @@
 #!/usr/bin/env node
 /** @format */
 
-const { spawnSync } = require('child_process');
+import { spawnSync } from 'child_process';
 
-const tagArg = process.argv[2];
-const tag = tagArg ? (tagArg.startsWith('@') ? tagArg : `@${tagArg}`) : null;
+const rawArg = process.argv[2];
+
+const tags = rawArg.replaceAll(',', '|');
+console.log(tags);
 
 const command = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 const playwrightArgs = ['playwright', 'test'];
 
-if (tag) {
-	playwrightArgs.push('--grep', tag);
-}
+const runPlaywright = (grepTag) => {
+	const args = [...playwrightArgs];
 
-const testResult = spawnSync(command, playwrightArgs, {
-	stdio: 'inherit',
-	shell: true,
-});
+	if (grepTag) {
+		args.push('--grep', `"${grepTag}"`);
+	}
+
+	return spawnSync(command, args, {
+		stdio: 'inherit',
+		shell: true,
+	});
+};
+
+const testResult = runPlaywright(tags);
 
 if (testResult.status !== 0) {
 	process.exit(testResult.status ?? 1);
