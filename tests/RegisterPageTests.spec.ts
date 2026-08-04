@@ -1,32 +1,30 @@
 /** @format */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './testSetup';
 import { faker } from '@faker-js/faker';
-import { LoginPage } from '../pageObjects/LoginPage.spec';
-import { RegisterPage } from '../pageObjects/RegisterPage.spec';
-import { HomePage } from '../pageObjects/HomePage.spec';
+import { PageManager } from '../pageObjects/PageManager';
 
 test(
 	'Register page visual test',
 	{ tag: '@RegisterTest' },
 	async ({ page }) => {
-		const registerPage = new RegisterPage(page);
+		const registerPage = PageManager.getRegisterPage(page);
 		await registerPage.goto();
 		await registerPage.registerPageVisualTest();
 	},
 );
 
 test('Click on login link test', { tag: '@RegisterTest' }, async ({ page }) => {
-	const registerPage = new RegisterPage(page);
-	const loginPage = new LoginPage(page);
+	const registerPage = PageManager.getRegisterPage(page);
+	const loginPage = PageManager.getLoginPage(page);
 	await registerPage.goto();
 	await registerPage.clickOnLoginLink();
 	await loginPage.isNavigatedToLoginPage();
 });
 
 test('Valid register test', { tag: '@RegisterTest' }, async ({ page }) => {
-	const registerPage = new RegisterPage(page);
-	const homePage = new HomePage(page);
+	const registerPage = PageManager.getRegisterPage(page);
+	const homePage = PageManager.getHomePage(page);
 	await registerPage.goto();
 
 	const email = faker.internet.email();
@@ -37,14 +35,14 @@ test('Valid register test', { tag: '@RegisterTest' }, async ({ page }) => {
 		prefix: 'Aa1!',
 	});
 	await registerPage.register(email, password, password);
-	await homePage.isNavigatedToHomePage();
+	await homePage.isNavigatedToHomePage(email);
 });
 
 test(
 	'Register with empty credentials test',
 	{ tag: '@RegisterErrorTest' },
 	async ({ page }) => {
-		const registerPage = new RegisterPage(page);
+		const registerPage = PageManager.getRegisterPage(page);
 		await registerPage.goto();
 		await registerPage.register('', '', '');
 		await registerPage.isInvalidEmailErrorVisible();
@@ -56,7 +54,7 @@ test(
 	'Register with password mismatch test',
 	{ tag: '@RegisterErrorTest' },
 	async ({ page }) => {
-		const registerPage = new RegisterPage(page);
+		const registerPage = PageManager.getRegisterPage(page);
 		await registerPage.goto();
 		const email = faker.internet.email();
 		const password = faker.internet.password({
