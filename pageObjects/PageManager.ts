@@ -1,13 +1,14 @@
 /** @format */
 
 import { Page } from '@playwright/test';
-import { HomePage } from './HomePage.spec';
-import { LoginPage } from './LoginPage.spec';
-import { RegisterPage } from './RegisterPage.spec';
-import { ManageEventsPage } from './ManageEventsPage.spec';
-import { EventsPage } from './EventsPage.spec';
-import { ManageBookingsPage } from './ManageBookingsPage.spec';
-import { MyBookingsPage } from './MyBookingsPage.spec';
+import { HomePage } from './HomePage';
+import { LoginPage } from './LoginPage';
+import { RegisterPage } from './RegisterPage';
+import { ManageEventsPage } from './ManageEventsPage';
+import { EventsPage } from './EventsPage';
+import { ManageBookingsPage } from './ManageBookingsPage';
+import { MyBookingsPage } from './MyBookingsPage';
+import { EventBookingPage } from './EventBookingPage';
 
 export class PageManager {
 	static getHomePage(page: Page): HomePage {
@@ -36,5 +37,9 @@ export class PageManager {
 
 	static getMyBookingsPage(page: Page): MyBookingsPage {
 		return new MyBookingsPage(page);
+	}
+
+	static getEventBookingPage(page: Page): EventBookingPage {
+		return new EventBookingPage(page);
 	}
 }
