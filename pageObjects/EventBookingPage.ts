@@ -238,4 +238,9 @@ export class EventBookingPage {
 		await this.browseMoreEventsButton.click();
 		await eventsPage.isNavigatedToEventsPage();
 	}
+
+	async getBookingRefId(): Promise<string> {
+		const bookingRefId = await this.bookingReferenceId.textContent();
+		return bookingRefId ? bookingRefId.trim() : '';
+	}
 }
