@@ -15,3 +15,7 @@ test.beforeAll(async ({ browser }) => {
 test.beforeEach(async ({ page }) => {
 	await PageManager.getLoginPage(page).goto();
 });
+
+test.afterEach(async ({ page }) => {
+	await PageManager.getHomePage(page).logout();
+});

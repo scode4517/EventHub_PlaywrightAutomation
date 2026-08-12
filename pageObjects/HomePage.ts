@@ -156,7 +156,7 @@ export class HomePage {
 
 	async clickOnMyBookingsButton() {
 		const myBookingsPage = new MyBookingsPage(this.page);
-		await this.myBookingsButton.click();
+		await this.myBookingsButtonInHeader.click();
 		await myBookingsPage.isNavigatedToMyBookingsPage();
 	}
 
