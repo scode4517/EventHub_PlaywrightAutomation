@@ -36,6 +36,7 @@ export class EventBookingPage {
 	phoneNumberError: Locator;
 	viewMyBookingsButton: Locator;
 	browseMoreEventsButton: Locator;
+	eventCategory: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -113,6 +114,7 @@ export class EventBookingPage {
 		this.browseMoreEventsButton = this.page.getByRole('button', {
 			name: 'Browse More Events',
 		});
+		this.eventCategory = this.page.locator('span.text-xs').nth(1);
 	}
 
 	async isNavigatedToEventBookingPage(
@@ -182,6 +184,16 @@ export class EventBookingPage {
 		}).format(total);
 
 		await expect(this.totalCost).toHaveText(formattedTotal);
+	}
+
+	async getTotalCost(): Promise<string> {
+		const totalCost = await this.totalCost.textContent();
+		return totalCost ?? '';
+	}
+
+	async getEventCategory(): Promise<string> {
+		const eventCategory = await this.eventCategory.textContent();
+		return eventCategory ?? '';
 	}
 
 	async changeTicketCountTo(count: number) {

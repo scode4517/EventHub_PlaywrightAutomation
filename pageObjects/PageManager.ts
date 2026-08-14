@@ -9,6 +9,7 @@ import { EventsPage } from './EventsPage';
 import { ManageBookingsPage } from './ManageBookingsPage';
 import { MyBookingsPage } from './MyBookingsPage';
 import { EventBookingPage } from './EventBookingPage';
+import { BookingDetailsPage } from './BookingDetailsPage';
 
 export class PageManager {
 	static getHomePage(page: Page): HomePage {
@@ -41,5 +42,9 @@ export class PageManager {
 
 	static getEventBookingPage(page: Page): EventBookingPage {
 		return new EventBookingPage(page);
+	}
+
+	static getBookingDetailsPage(page: Page): BookingDetailsPage {
+		return new BookingDetailsPage(page);
 	}
 }
