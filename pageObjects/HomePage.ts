@@ -175,6 +175,7 @@ export class HomePage {
 	async readEventDetailsAndClickOnEventCardByName(
 		eventName: string,
 	): Promise<string[]> {
+		await this.page.waitForTimeout(2000);
 		const numberOfEvents = await this.eventCards.count();
 		console.log('Number of events: ' + numberOfEvents);
 		const eventDetails: string[] = [];
