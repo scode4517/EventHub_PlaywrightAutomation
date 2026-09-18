@@ -1,6 +1,6 @@
 /** @format */
 
-import { test, expect } from './testSetup';
+import { test, expect } from '@playwright/test';
 import { PageManager } from '../pageObjects/PageManager';
 import { TestData } from '../TestData/TestData';
 

@@ -1,6 +1,6 @@
 /** @format */
 
-import { test } from './TestSetup';
+import { test } from './testSetup';
 import { PageManager } from '../pageObjects/PageManager';
 import { TestData } from '../TestData/TestData';
 import { faker } from '@faker-js/faker';
