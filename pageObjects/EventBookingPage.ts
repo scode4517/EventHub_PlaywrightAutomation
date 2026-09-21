@@ -89,9 +89,7 @@ export class EventBookingPage {
 		this.bookingConfirmedText = this.page.getByRole('heading', {
 			name: 'Booking Confirmed! 🎉',
 		});
-		this.bookingReferenceId = this.page
-			.locator('div.bg-indigo-50 span')
-			.nth(2);
+		this.bookingReferenceId = this.page.locator('.booking-ref');
 		this.bookingCustomerName = this.page
 			.locator('div.bg-indigo-50 span')
 			.nth(4);

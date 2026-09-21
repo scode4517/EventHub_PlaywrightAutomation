@@ -84,7 +84,7 @@ export class HomePage {
 		);
 		this.eventCost = this.eventCards.locator('p');
 		this.eventSeatsLeft = this.eventCards.locator(
-			'span.text-amber-600',
+			'span.text-emerald-600',
 		);
 		this.eventBookButton = this.eventCards.getByRole('link', {
 			name: 'Book Now',
