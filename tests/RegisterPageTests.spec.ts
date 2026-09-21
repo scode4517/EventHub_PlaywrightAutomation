@@ -1,6 +1,6 @@
 /** @format */
 
-import { test, expect } from './testSetup';
+import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
 import { PageManager } from '../pageObjects/PageManager';
 

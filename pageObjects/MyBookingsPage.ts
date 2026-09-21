@@ -166,6 +166,11 @@ export class MyBookingsPage {
 		);
 	}
 
+	async getEventBookingId(): Promise<string> {
+		const bookingId = await this.bookingId.textContent();
+		return bookingId ? bookingId.trim() : '';
+	}
+
 	async verifyBookingDetails(
 		eventName: string,
 		eventDate: string,
