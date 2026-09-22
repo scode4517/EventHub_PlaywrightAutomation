@@ -192,6 +192,22 @@ export class HomePage {
 			eventDetails.push(await this.getEventSeatsLeft(index));
 
 			await this.clickOnEventCardByIndex(index);
+		} else {
+			for (let i = 0; i < numberOfEvents; i++) {
+				const eventTitle = await this.getEventName(i);
+				if (eventTitle === eventName) {
+					eventDetails.push(await this.getEventName(i));
+					eventDetails.push(await this.getEventDate(i));
+					eventDetails.push(await this.getEventLocation(i));
+					eventDetails.push(await this.getEventCost(i));
+					eventDetails.push(
+						await this.getEventSeatsLeft(i),
+					);
+
+					await this.clickOnEventCardByIndex(i);
+					break;
+				}
+			}
 		}
 		return eventDetails;
 	}
