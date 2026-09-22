@@ -189,6 +189,7 @@ export class MyBookingsPage {
 		);
 		const normalizedEventDate = this.normalizeEventDate(eventDate);
 		await expect(this.eventDate).toContainText(normalizedEventDate);
+
 		await expect(this.totalCost).toContainText(eventCost);
 		await expect(this.seatsBooked).toContainText(
 			`${seatsBooked} ticket`,
@@ -197,11 +198,73 @@ export class MyBookingsPage {
 		await expect(this.bookingRefId).toContainText(bookingRefId);
 	}
 
-	private normalizeEventDate(eventDate: string) {
-		const cleaned = eventDate.replace(/^[A-Za-z]+,\s*/, '').trim();
-		if (/\d{4}$/.test(cleaned)) {
-			return cleaned;
+	// private normalizeEventDate(eventDate: string) {
+	// 	const cleaned = eventDate.replace(/^[A-Za-z]+,\s*/, '').trim();
+	// 	if (/\d{4}$/.test(cleaned)) {
+	// 		return cleaned;
+	// 	}
+	// 	return `${cleaned} ${new Date().getFullYear()}`;
+	// }
+
+	async parseDate(value: string): Promise<Date> {
+		const input = value.trim();
+
+		// ISO: 2027-04-03 or 2027-04-03T21:03
+		let match = input.match(/^(\d{4})-(\d{2})-(\d{2})/);
+		if (match) {
+			return new Date(
+				Number(match[1]),
+				Number(match[2]) - 1,
+				Number(match[3]),
+			);
 		}
-		return `${cleaned} ${new Date().getFullYear()}`;
+
+		// Display format: 3 Apr 2027
+		match = input.match(/^(\d{1,2})\s([A-Za-z]{3,9})\s(\d{4})$/);
+		if (match) {
+			const parsed = new Date(
+				`${match[2]} ${match[1]}, ${match[3]}`,
+			);
+			if (!Number.isNaN(parsed.getTime())) return parsed;
+		}
+
+		// Example numeric format: 03/04/2027, interpreted as DD/MM/YYYY
+		match = input.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+		if (match) {
+			return new Date(
+				Number(match[3]),
+				Number(match[2]) - 1,
+				Number(match[1]),
+			);
+		}
+
+		throw new Error(`Unsupported date format: ${value}`);
+	}
+
+	async compareDates(first: string, second: string): Promise<-1 | 0 | 1> {
+		const firstDate = await this.parseDate(first);
+		const secondDate = await this.parseDate(second);
+
+		firstDate.setHours(0, 0, 0, 0);
+		secondDate.setHours(0, 0, 0, 0);
+
+		if (firstDate < secondDate) return -1;
+		if (firstDate > secondDate) return 1;
+		return 0;
+	}
+
+	private normalizeEventDate(eventDate: string): string {
+		const datePart = eventDate.slice(0, 10);
+		const [year, month, day] = datePart.split('-').map(Number);
+
+		if (!year || !month || !day) {
+			throw new Error(`Invalid event date: ${eventDate}`);
+		}
+
+		return new Intl.DateTimeFormat('en-GB', {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric',
+		}).format(new Date(year, month - 1, day));
 	}
 }

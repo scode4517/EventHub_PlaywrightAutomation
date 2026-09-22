@@ -72,7 +72,7 @@ test(
 );
 
 test(
-	'View booking using cancel booking button',
+	'View booking using view booking button',
 	{ tag: '@MyBookingsPageTest' },
 	async ({ page }) => {
 		const eventBookingPage = PageManager.getEventBookingPage(page);
