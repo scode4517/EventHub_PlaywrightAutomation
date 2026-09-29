@@ -1,19 +1,33 @@
 /** @format */
 
-import { test as base } from '@playwright/test';
+import { test as base, expect, request } from '@playwright/test';
 import { PageManager } from '../pageObjects/PageManager';
+import { TestData } from '../TestData/TestData';
 
 export const test = base.extend({});
 export { expect } from '@playwright/test';
 
-test.beforeAll(async ({ browser }) => {
-	const setupPage = await browser.newPage();
-	await PageManager.getLoginPage(setupPage).goto();
-	await setupPage.close();
+let token: string;
+
+test.beforeAll(async ({ browser, request }) => {
+	const user = {
+		email: TestData.email,
+		password: TestData.password,
+	};
+	const loginResponse = await request.post(
+		TestData.apiUrl + '/auth/login',
+		{ data: user },
+	);
+	expect(loginResponse.ok()).toBeTruthy();
+	token = (await loginResponse.json()).token;
+	console.log(token);
 });
 
-test.beforeEach(async ({ page }) => {
-	await PageManager.getLoginPage(page).goto();
+test.beforeEach(async ({ page, request }) => {
+	page.addInitScript((value) => {
+		window.localStorage.setItem('eventhub_token', value);
+	}, token);
+	await PageManager.getHomePage(page).goto();
 });
 
 test.afterEach(async ({ page }) => {

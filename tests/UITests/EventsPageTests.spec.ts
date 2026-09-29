@@ -1,8 +1,8 @@
 /** @format */
 
-import { test } from './testSetup';
-import { PageManager } from '../pageObjects/PageManager';
-import { TestData } from '../TestData/TestData';
+import { test } from '../testSetup';
+import { PageManager } from '../../pageObjects/PageManager';
+import { TestData } from '../../TestData/TestData';
 
 test.beforeEach(async ({ page }) => {
 	const loginPage = PageManager.getLoginPage(page);

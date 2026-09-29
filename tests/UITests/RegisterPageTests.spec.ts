@@ -2,7 +2,7 @@
 
 import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
-import { PageManager } from '../pageObjects/PageManager';
+import { PageManager } from '../../pageObjects/PageManager';
 
 test(
 	'Register page visual test',

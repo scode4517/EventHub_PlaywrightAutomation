@@ -1,8 +1,8 @@
 /** @format */
 
-import { test } from './testSetup';
-import { PageManager } from '../pageObjects/PageManager';
-import { TestData } from '../TestData/TestData';
+import { test } from '../testSetup';
+import { PageManager } from '../../pageObjects/PageManager';
+import { TestData } from '../../TestData/TestData';
 import { faker } from '@faker-js/faker';
 
 test.beforeEach(async ({ page }) => {
@@ -72,7 +72,7 @@ test(
 );
 
 test(
-	'View booking using cancel booking button',
+	'View booking using view booking button',
 	{ tag: '@MyBookingsPageTest' },
 	async ({ page }) => {
 		const eventBookingPage = PageManager.getEventBookingPage(page);

@@ -1,8 +1,8 @@
 /** @format */
 
 import { test, expect } from '@playwright/test';
-import { PageManager } from '../pageObjects/PageManager';
-import { TestData } from '../TestData/TestData';
+import { PageManager } from '../../pageObjects/PageManager';
+import { TestData } from '../../TestData/TestData';
 
 test('Login page visual test', { tag: '@LoginTest' }, async ({ page }) => {
 	const loginPage = PageManager.getLoginPage(page);

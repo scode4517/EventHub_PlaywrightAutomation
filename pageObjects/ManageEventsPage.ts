@@ -229,13 +229,15 @@ export class ManageEventsPage {
 		await expect(eventRow).toBeVisible();
 		await expect(eventRow).toContainText(category);
 		await expect(eventRow).toContainText(city);
-		const [year, month, day] = dateTime.split('T')[0].split('-');
-		const formattedDateTime = `${Number(day)} ${new Date(
-			Number(year),
-			Number(month) - 1,
-			Number(day),
-		).toLocaleString('en-US', { month: 'short' })} ${year}`;
-		await expect(eventRow).toContainText(formattedDateTime);
+		const [year, month, day] = dateTime.slice(0, 10).split('-');
+
+		const formattedDate = new Intl.DateTimeFormat('en-GB', {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric',
+		}).format(new Date(Number(year), Number(month) - 1, Number(day)));
+
+		await expect(eventRow).toContainText(formattedDate);
 
 		const formattedPrice = `$${Number(price).toLocaleString('en-US')}`;
 		await expect(eventRow).toContainText(formattedPrice);

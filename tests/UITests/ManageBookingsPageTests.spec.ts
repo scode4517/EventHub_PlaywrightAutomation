@@ -1,8 +1,8 @@
 /** @format */
 
-import { test } from './testSetup';
-import { PageManager } from '../pageObjects/PageManager';
-import { TestData } from '../TestData/TestData';
+import { test } from '../testSetup';
+import { PageManager } from '../../pageObjects/PageManager';
+import { TestData } from '../../TestData/TestData';
 import { faker } from '@faker-js/faker';
 
 test.beforeEach(async ({ page }) => {
@@ -131,14 +131,14 @@ test(
 			bookingRefId,
 			name,
 			email,
-            '1234567890',
+			'1234567890',
 			eventName,
 			1,
 			eventCost,
 			'confirmed',
 			todayDate,
-            eventDate,
-            eventLocation
+			eventDate,
+			eventLocation,
 		);
 		await page.waitForTimeout(2000);
 		await manageBookingsPage.cancelBooking(bookingRefId);
