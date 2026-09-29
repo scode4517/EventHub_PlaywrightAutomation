@@ -32,4 +32,7 @@ export class TestData {
 		'Workshop',
 		'Festival',
 	];
+
+	static readonly apiUrl =
+		'https://api.eventhub.rahulshettyacademy.com/api';
 }

@@ -1,17 +1,17 @@
 /** @format */
 
-import { test, expect } from './testSetup';
-import { PageManager } from '../pageObjects/PageManager';
-import { TestData } from '../TestData/TestData';
+import { test, expect } from '../testSetup';
+import { PageManager } from '../../pageObjects/PageManager';
+import { TestData } from '../../TestData/TestData';
 
-test.beforeEach(async ({ page }) => {
-	const loginPage = PageManager.getLoginPage(page);
-	await PageManager.getLoginPage(page).login(
-		TestData.email,
-		TestData.password,
-	);
-	await page.waitForLoadState('networkidle');
-});
+// test.beforeEach(async ({ page }) => {
+// 	const loginPage = PageManager.getLoginPage(page);
+// 	await PageManager.getLoginPage(page).login(
+// 		TestData.email,
+// 		TestData.password,
+// 	);
+// 	await page.waitForLoadState('networkidle');
+// });
 
 test(
 	'Logged in user mail display test',
