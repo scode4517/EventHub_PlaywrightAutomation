@@ -5,7 +5,7 @@ import { TestData } from '../../TestData/TestData';
 import { LoginAPI } from '../../api-methods/LoginAPI';
 import { GetEventListAPI } from '../../api-methods/GetEventsListAPI';
 import { CreateEventAPI } from '../../api-methods/CreateEventAPI';
-import { da, faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { GetEventByIdAPI } from '../../api-methods/GetEventByIdAPI';
 import { UpdateEventAPI } from '../../api-methods/UpdateEventAPI';
 
