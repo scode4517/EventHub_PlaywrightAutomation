@@ -37,6 +37,7 @@ export class EventBookingPage {
 	viewMyBookingsButton: Locator;
 	browseMoreEventsButton: Locator;
 	eventCategory: Locator;
+	eventNotFound: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -113,6 +114,9 @@ export class EventBookingPage {
 			name: 'Browse More Events',
 		});
 		this.eventCategory = this.page.locator('span.text-xs').nth(1);
+		this.eventNotFound = this.page.getByRole('heading', {
+			name: 'Event not found',
+		});
 	}
 
 	async isNavigatedToEventBookingPage(
@@ -252,5 +256,9 @@ export class EventBookingPage {
 	async getBookingRefId(): Promise<string> {
 		const bookingRefId = await this.bookingReferenceId.textContent();
 		return bookingRefId ? bookingRefId.trim() : '';
+	}
+
+	async verifyEventNotFoundIsDisplayed() {
+		await expect(this.eventNotFound).toBeVisible();
 	}
 }
