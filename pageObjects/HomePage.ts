@@ -273,4 +273,8 @@ export class HomePage {
 		}
 		return seatsLeft;
 	}
+
+	async getEventsCount(): Promise<number> {
+		return await this.eventCards.count();
+	}
 }

@@ -11,6 +11,9 @@ export class LoginPage {
 	invalidEmail: Locator;
 	invalidPassword: Locator;
 	incorrectCredentialsError: Locator;
+	internalServerError: Locator;
+	networkError: Locator;
+	resourceNotFound: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -27,6 +30,11 @@ export class LoginPage {
 		this.incorrectCredentialsError = this.page.getByText(
 			'Invalid email or password',
 		);
+		this.internalServerError = this.page.getByText(
+			'Internal Server Error',
+		);
+		this.networkError = this.page.getByText('Network Error');
+		this.resourceNotFound = this.page.getByText('Resource not found');
 	}
 
 	async goto() {
@@ -73,5 +81,17 @@ export class LoginPage {
 		await expect(this.incorrectCredentialsError).toHaveText(
 			'Invalid email or password',
 		);
+	}
+
+	async isInternalServerErrorDisplayed() {
+		await expect(this.internalServerError).toBeVisible();
+	}
+
+	async isResourceNotFoundErrorDisplayed() {
+		await expect(this.resourceNotFound).toBeVisible();
+	}
+
+	async isNetworkErrorDisplayed() {
+		await expect(this.networkError).toBeVisible();
 	}
 }

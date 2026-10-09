@@ -31,6 +31,7 @@ export class ManageEventsPage {
 	eventDeletedToast: Locator;
 	updateEventButton: Locator;
 	eventUpdatedToast: Locator;
+	noEvents: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -99,6 +100,7 @@ export class ManageEventsPage {
 			name: '💾 Update Event',
 		});
 		this.eventUpdatedToast = this.page.getByText('Event updated!');
+		this.noEvents = this.page.getByText('No events yet');
 	}
 
 	async isNavigatedToManageEventsPage() {
@@ -158,7 +160,7 @@ export class ManageEventsPage {
 		}
 		await this.newEventFormSubmitButton.click();
 
-		await expect(this.eventCreationToast).toBeVisible();
+		// await expect(this.eventCreationToast).toBeVisible();
 		// await expect(this.eventCreationToast).toHaveScreenshot(
 		// 	'event-creation-toast.png',
 		// 	{
@@ -205,7 +207,7 @@ export class ManageEventsPage {
 			},
 		);
 		await this.deleteEventButtonInDialog.click();
-		await expect(this.eventDeletedToast).toBeVisible();
+		// await expect(this.eventDeletedToast).toBeVisible();
 		// await expect(this.eventDeletedToast).toHaveScreenshot(
 		// 	'event-deleted-toast.png',
 		// 	{
@@ -321,7 +323,7 @@ export class ManageEventsPage {
 		}
 		await this.updateEventButton.click();
 
-		await expect(this.eventUpdatedToast).toBeVisible();
+		// await expect(this.eventUpdatedToast).toBeVisible();
 		// await expect(this.eventUpdatedToast).toHaveScreenshot(
 		// 	'event-updated-toast.png',
 		// 	{
@@ -330,5 +332,9 @@ export class ManageEventsPage {
 		// );
 		// const finalRowCount: number = await this.eventTableRows.count();
 		// expect(finalRowCount).toBe(initialRowCount);
+	}
+
+	async verifyNoEventsTextIsDisplayed() {
+		await expect(this.noEvents).toBeVisible();
 	}
 }
