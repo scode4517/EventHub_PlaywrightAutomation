@@ -17,6 +17,8 @@ import { CreateBookingsAPI } from '../../api-methods/CreateBookingsAPI';
 import { GetBookingByRefIdAPI } from '../../api-methods/GetBookingByRefIdAPI';
 import { EventsPage } from '../../pageObjects/EventsPage';
 import { EventBookingPage } from '../../pageObjects/EventBookingPage';
+import { MyBookingsPage } from '../../pageObjects/MyBookingsPage';
+import { BookingDetailsPage } from '../../pageObjects/BookingDetailsPage';
 
 test(
 	'Login when login api is down',
@@ -639,6 +641,614 @@ test(
 
 		await manageEventsPage.deleteEvent(title);
 
+		await loginPage.isResourceNotFoundErrorDisplayed();
+	},
+);
+
+test(
+	'Get bookings in my bookings page and manage bookings page when there is network error',
+	{ tag: '@ServiceDownTest' },
+	async ({ page, request }) => {
+		const token: string = await new LoginAPI(request).getToken(
+			TestData.email,
+			TestData.password,
+		);
+
+		const title: string = faker.word.noun();
+		const description: string = faker.lorem.paragraph();
+		const category: string = faker.helpers.arrayElement(
+			TestData.eventCategories,
+		);
+		const city: string = faker.location.city();
+		const venue: string = faker.location.streetAddress();
+		const dateTime: string = faker.date.future().toISOString();
+		const seats: number = faker.number.int({ min: 1, max: 1000 });
+		const price: number = faker.number.int({ min: 1, max: 1000 });
+		const imageUrl: string = faker.image.url();
+
+		const email: string = faker.internet.email();
+		const name: string = faker.person.fullName();
+		const phone: string = '1234567890';
+		const quantity: number = faker.number.int({ min: 1, max: 10 });
+
+		const createEventResponse = await new CreateEventAPI(
+			request,
+		).createEvent(
+			token,
+			title,
+			description,
+			category,
+			venue,
+			city,
+			dateTime,
+			price,
+			seats,
+			imageUrl,
+		);
+
+		const responseBody = await createEventResponse.json();
+		const eventId: number = responseBody.data.id;
+
+		const createBookingAPI = new CreateBookingsAPI(request);
+
+		await createBookingAPI.createBooking(
+			token,
+			eventId,
+			name,
+			email,
+			phone,
+			quantity,
+		);
+
+		await page.route('**/api/bookings**', async (route) => {
+			await route.abort('failed');
+		});
+
+		const loginPage: LoginPage = PageManager.getLoginPage(page);
+		const homePage: HomePage = PageManager.getHomePage(page);
+		const myBookingsPage: MyBookingsPage =
+			PageManager.getMyBookingsPage(page);
+
+		await loginPage.goto();
+		await loginPage.login(TestData.email, TestData.password);
+		await homePage.isNavigatedToHomePage(TestData.email);
+		await homePage.gotoMyBookingsPage();
+
+		await page.waitForTimeout(1000);
+		await myBookingsPage.verifyErrorTextIsDisplayed();
+
+		await homePage.gotoManageBookingsPage();
+
+		await page.waitForTimeout(1000);
+		await myBookingsPage.verifyErrorTextIsDisplayed();
+	},
+);
+
+test(
+	'Get bookings in my bookings page when service is down',
+	{ tag: '@ServiceDownTest' },
+	async ({ page, request }) => {
+		const token: string = await new LoginAPI(request).getToken(
+			TestData.email,
+			TestData.password,
+		);
+
+		const title: string = faker.word.noun();
+		const description: string = faker.lorem.paragraph();
+		const category: string = faker.helpers.arrayElement(
+			TestData.eventCategories,
+		);
+		const city: string = faker.location.city();
+		const venue: string = faker.location.streetAddress();
+		const dateTime: string = faker.date.future().toISOString();
+		const seats: number = faker.number.int({ min: 1, max: 1000 });
+		const price: number = faker.number.int({ min: 1, max: 1000 });
+		const imageUrl: string = faker.image.url();
+
+		const email: string = faker.internet.email();
+		const name: string = faker.person.fullName();
+		const phone: string = '1234567890';
+		const quantity: number = faker.number.int({ min: 1, max: 10 });
+
+		const createEventResponse = await new CreateEventAPI(
+			request,
+		).createEvent(
+			token,
+			title,
+			description,
+			category,
+			venue,
+			city,
+			dateTime,
+			price,
+			seats,
+			imageUrl,
+		);
+
+		const responseBody = await createEventResponse.json();
+		const eventId: number = responseBody.data.id;
+
+		const createBookingAPI = new CreateBookingsAPI(request);
+
+		await createBookingAPI.createBooking(
+			token,
+			eventId,
+			name,
+			email,
+			phone,
+			quantity,
+		);
+
+		await page.route('**/api/bookings**', async (route) => {
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					success: false,
+					error: 'Resource not found',
+				}),
+			});
+		});
+
+		const loginPage: LoginPage = PageManager.getLoginPage(page);
+		const homePage: HomePage = PageManager.getHomePage(page);
+		const myBookingsPage: MyBookingsPage =
+			PageManager.getMyBookingsPage(page);
+
+		await loginPage.goto();
+		await loginPage.login(TestData.email, TestData.password);
+		await homePage.isNavigatedToHomePage(TestData.email);
+		await homePage.gotoMyBookingsPage();
+
+		await page.waitForTimeout(1000);
+		await myBookingsPage.verifyErrorTextIsDisplayed();
+
+		await homePage.gotoManageBookingsPage();
+
+		await page.waitForTimeout(1000);
+		await myBookingsPage.verifyErrorTextIsDisplayed();
+	},
+);
+
+test(
+	'Create booking when there is network error',
+	{ tag: '@ServiceDownTest' },
+	async ({ page, request }) => {
+		const token: string = await new LoginAPI(request).getToken(
+			TestData.email,
+			TestData.password,
+		);
+
+		const title: string = faker.word.noun();
+		const description: string = faker.lorem.paragraph();
+		const category: string = faker.helpers.arrayElement(
+			TestData.eventCategories,
+		);
+		const city: string = faker.location.city();
+		const venue: string = faker.location.streetAddress();
+		const dateTime: string = faker.date.future().toISOString();
+		const seats: number = faker.number.int({ min: 1, max: 1000 });
+		const price: number = faker.number.int({ min: 1, max: 1000 });
+		const imageUrl: string = faker.image.url();
+
+		const email: string = faker.internet.email();
+		const name: string = faker.person.fullName();
+
+		await new CreateEventAPI(request).createEvent(
+			token,
+			title,
+			description,
+			category,
+			venue,
+			city,
+			dateTime,
+			price,
+			seats,
+			imageUrl,
+		);
+
+		await page.route('**/api/bookings', async (route) => {
+			await route.abort('failed');
+		});
+
+		const loginPage: LoginPage = PageManager.getLoginPage(page);
+		const homePage: HomePage = PageManager.getHomePage(page);
+		const eventBookingPage: EventBookingPage =
+			PageManager.getEventBookingPage(page);
+
+		await loginPage.goto();
+		await loginPage.login(TestData.email, TestData.password);
+		await homePage.isNavigatedToHomePage(TestData.email);
+
+		await homePage.gotoEventsPage();
+		await homePage.readEventDetailsAndClickOnEventCardByName(title);
+		await page.waitForTimeout(2000);
+
+		await eventBookingPage.bookEvent(name, email, '1234567890');
+		await page.waitForTimeout(1000);
+
+		await loginPage.isNetworkErrorDisplayed();
+	},
+);
+
+test(
+	'Create booking when service is down',
+	{ tag: '@ServiceDownTest' },
+	async ({ page, request }) => {
+		const token: string = await new LoginAPI(request).getToken(
+			TestData.email,
+			TestData.password,
+		);
+
+		const title: string = faker.word.noun();
+		const description: string = faker.lorem.paragraph();
+		const category: string = faker.helpers.arrayElement(
+			TestData.eventCategories,
+		);
+		const city: string = faker.location.city();
+		const venue: string = faker.location.streetAddress();
+		const dateTime: string = faker.date.future().toISOString();
+		const seats: number = faker.number.int({ min: 1, max: 1000 });
+		const price: number = faker.number.int({ min: 1, max: 1000 });
+		const imageUrl: string = faker.image.url();
+
+		const email: string = faker.internet.email();
+		const name: string = faker.person.fullName();
+
+		await new CreateEventAPI(request).createEvent(
+			token,
+			title,
+			description,
+			category,
+			venue,
+			city,
+			dateTime,
+			price,
+			seats,
+			imageUrl,
+		);
+
+		await page.route('**/api/bookings', async (route) => {
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					success: false,
+					error: 'Resource not found',
+				}),
+			});
+		});
+
+		const loginPage: LoginPage = PageManager.getLoginPage(page);
+		const homePage: HomePage = PageManager.getHomePage(page);
+		const eventBookingPage: EventBookingPage =
+			PageManager.getEventBookingPage(page);
+
+		await loginPage.goto();
+		await loginPage.login(TestData.email, TestData.password);
+		await homePage.isNavigatedToHomePage(TestData.email);
+
+		await homePage.gotoEventsPage();
+		await homePage.readEventDetailsAndClickOnEventCardByName(title);
+		await page.waitForTimeout(2000);
+
+		await eventBookingPage.bookEvent(name, email, '1234567890');
+		await page.waitForTimeout(1000);
+
+		await loginPage.isResourceNotFoundErrorDisplayed();
+	},
+);
+
+test(
+	'View booking when there is network error',
+	{ tag: '@ServiceDownTest' },
+	async ({ page, request }) => {
+		const token: string = await new LoginAPI(request).getToken(
+			TestData.email,
+			TestData.password,
+		);
+
+		const title: string = faker.word.noun();
+		const description: string = faker.lorem.paragraph();
+		const category: string = faker.helpers.arrayElement(
+			TestData.eventCategories,
+		);
+		const city: string = faker.location.city();
+		const venue: string = faker.location.streetAddress();
+		const dateTime: string = faker.date.future().toISOString();
+		const seats: number = faker.number.int({ min: 1, max: 1000 });
+		const price: number = faker.number.int({ min: 1, max: 1000 });
+		const imageUrl: string = faker.image.url();
+
+		const email: string = faker.internet.email();
+		const name: string = faker.person.fullName();
+		const phone: string = '1234567890';
+		const quantity: number = faker.number.int({ min: 1, max: 10 });
+
+		const createEventResponse = await new CreateEventAPI(
+			request,
+		).createEvent(
+			token,
+			title,
+			description,
+			category,
+			venue,
+			city,
+			dateTime,
+			price,
+			seats,
+			imageUrl,
+		);
+
+		const responseBody = await createEventResponse.json();
+		const eventId: number = responseBody.data.id;
+
+		const createBookingAPI = new CreateBookingsAPI(request);
+
+		await createBookingAPI.createBooking(
+			token,
+			eventId,
+			name,
+			email,
+			phone,
+			quantity,
+		);
+
+		await page.route('**/api/bookings/**', async (route) => {
+			await route.abort('failed');
+		});
+
+		const loginPage: LoginPage = PageManager.getLoginPage(page);
+		const homePage: HomePage = PageManager.getHomePage(page);
+		const myBookingsPage: MyBookingsPage =
+			PageManager.getMyBookingsPage(page);
+		const bookingDetails: BookingDetailsPage =
+			PageManager.getBookingDetailsPage(page);
+
+		await loginPage.goto();
+		await loginPage.login(TestData.email, TestData.password);
+		await homePage.isNavigatedToHomePage(TestData.email);
+		await homePage.gotoMyBookingsPage();
+		await myBookingsPage.viewBooking();
+		await page.waitForTimeout(1000);
+		await bookingDetails.verifyBookingNotFoundIsDisplayed();
+	},
+);
+
+test(
+	'View booking when service is down',
+	{ tag: '@ServiceDownTest' },
+	async ({ page, request }) => {
+		const token: string = await new LoginAPI(request).getToken(
+			TestData.email,
+			TestData.password,
+		);
+
+		const title: string = faker.word.noun();
+		const description: string = faker.lorem.paragraph();
+		const category: string = faker.helpers.arrayElement(
+			TestData.eventCategories,
+		);
+		const city: string = faker.location.city();
+		const venue: string = faker.location.streetAddress();
+		const dateTime: string = faker.date.future().toISOString();
+		const seats: number = faker.number.int({ min: 1, max: 1000 });
+		const price: number = faker.number.int({ min: 1, max: 1000 });
+		const imageUrl: string = faker.image.url();
+
+		const email: string = faker.internet.email();
+		const name: string = faker.person.fullName();
+		const phone: string = '1234567890';
+		const quantity: number = faker.number.int({ min: 1, max: 10 });
+
+		const createEventResponse = await new CreateEventAPI(
+			request,
+		).createEvent(
+			token,
+			title,
+			description,
+			category,
+			venue,
+			city,
+			dateTime,
+			price,
+			seats,
+			imageUrl,
+		);
+
+		const responseBody = await createEventResponse.json();
+		const eventId: number = responseBody.data.id;
+
+		const createBookingAPI = new CreateBookingsAPI(request);
+
+		await createBookingAPI.createBooking(
+			token,
+			eventId,
+			name,
+			email,
+			phone,
+			quantity,
+		);
+
+		await page.route('**/api/bookings/**', async (route) => {
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					success: false,
+					error: 'Resource not found',
+				}),
+			});
+		});
+
+		const loginPage: LoginPage = PageManager.getLoginPage(page);
+		const homePage: HomePage = PageManager.getHomePage(page);
+		const myBookingsPage: MyBookingsPage =
+			PageManager.getMyBookingsPage(page);
+		const bookingDetails: BookingDetailsPage =
+			PageManager.getBookingDetailsPage(page);
+
+		await loginPage.goto();
+		await loginPage.login(TestData.email, TestData.password);
+		await homePage.isNavigatedToHomePage(TestData.email);
+		await homePage.gotoMyBookingsPage();
+		await myBookingsPage.viewBooking();
+		await page.waitForTimeout(1000);
+		await bookingDetails.verifyBookingNotFoundIsDisplayed();
+	},
+);
+
+test(
+	'Cancel booking when there is network error',
+	{ tag: '@ServiceDownTest' },
+	async ({ page, request }) => {
+		const token: string = await new LoginAPI(request).getToken(
+			TestData.email,
+			TestData.password,
+		);
+
+		const title: string = faker.word.noun();
+		const description: string = faker.lorem.paragraph();
+		const category: string = faker.helpers.arrayElement(
+			TestData.eventCategories,
+		);
+		const city: string = faker.location.city();
+		const venue: string = faker.location.streetAddress();
+		const dateTime: string = faker.date.future().toISOString();
+		const seats: number = faker.number.int({ min: 1, max: 1000 });
+		const price: number = faker.number.int({ min: 1, max: 1000 });
+		const imageUrl: string = faker.image.url();
+
+		const email: string = faker.internet.email();
+		const name: string = faker.person.fullName();
+		const phone: string = '1234567890';
+		const quantity: number = faker.number.int({ min: 1, max: 10 });
+
+		const createEventResponse = await new CreateEventAPI(
+			request,
+		).createEvent(
+			token,
+			title,
+			description,
+			category,
+			venue,
+			city,
+			dateTime,
+			price,
+			seats,
+			imageUrl,
+		);
+
+		const responseBody = await createEventResponse.json();
+		const eventId: number = responseBody.data.id;
+
+		const createBookingAPI = new CreateBookingsAPI(request);
+
+		await createBookingAPI.createBooking(
+			token,
+			eventId,
+			name,
+			email,
+			phone,
+			quantity,
+		);
+
+		const loginPage: LoginPage = PageManager.getLoginPage(page);
+		const homePage: HomePage = PageManager.getHomePage(page);
+		const myBookingsPage: MyBookingsPage =
+			PageManager.getMyBookingsPage(page);
+
+		await loginPage.goto();
+		await loginPage.login(TestData.email, TestData.password);
+		await homePage.isNavigatedToHomePage(TestData.email);
+		await homePage.gotoMyBookingsPage();
+
+		await page.route('**/api/bookings/**', async (route) => {
+			await route.abort('failed');
+		});
+
+		await myBookingsPage.cancelBooking();
+		await loginPage.isNetworkErrorDisplayed();
+	},
+);
+
+test(
+	'Cancel booking when service is down',
+	{ tag: '@ServiceDownTest' },
+	async ({ page, request }) => {
+		const token: string = await new LoginAPI(request).getToken(
+			TestData.email,
+			TestData.password,
+		);
+
+		const title: string = faker.word.noun();
+		const description: string = faker.lorem.paragraph();
+		const category: string = faker.helpers.arrayElement(
+			TestData.eventCategories,
+		);
+		const city: string = faker.location.city();
+		const venue: string = faker.location.streetAddress();
+		const dateTime: string = faker.date.future().toISOString();
+		const seats: number = faker.number.int({ min: 1, max: 1000 });
+		const price: number = faker.number.int({ min: 1, max: 1000 });
+		const imageUrl: string = faker.image.url();
+
+		const email: string = faker.internet.email();
+		const name: string = faker.person.fullName();
+		const phone: string = '1234567890';
+		const quantity: number = faker.number.int({ min: 1, max: 10 });
+
+		const createEventResponse = await new CreateEventAPI(
+			request,
+		).createEvent(
+			token,
+			title,
+			description,
+			category,
+			venue,
+			city,
+			dateTime,
+			price,
+			seats,
+			imageUrl,
+		);
+
+		const responseBody = await createEventResponse.json();
+		const eventId: number = responseBody.data.id;
+
+		const createBookingAPI = new CreateBookingsAPI(request);
+
+		await createBookingAPI.createBooking(
+			token,
+			eventId,
+			name,
+			email,
+			phone,
+			quantity,
+		);
+
+		const loginPage: LoginPage = PageManager.getLoginPage(page);
+		const homePage: HomePage = PageManager.getHomePage(page);
+		const myBookingsPage: MyBookingsPage =
+			PageManager.getMyBookingsPage(page);
+
+		await loginPage.goto();
+		await loginPage.login(TestData.email, TestData.password);
+		await homePage.isNavigatedToHomePage(TestData.email);
+		await homePage.gotoMyBookingsPage();
+
+		await page.route('**/api/bookings/**', async (route) => {
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					success: false,
+					error: 'Resource not found',
+				}),
+			});
+		});
+
+		await myBookingsPage.cancelBooking();
 		await loginPage.isResourceNotFoundErrorDisplayed();
 	},
 );
