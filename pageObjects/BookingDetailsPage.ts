@@ -35,6 +35,7 @@ export class BookingDetailsPage {
 	checkForRefundButton: Locator;
 	eligibleForRefund: Locator;
 	notEligibleForRefund: Locator;
+	bookingNotFound: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -91,6 +92,7 @@ export class BookingDetailsPage {
 		this.notEligibleForRefund = this.page.getByText(
 			'Not eligible for refund.',
 		);
+		this.bookingNotFound = this.page.getByText('Booking not found');
 	}
 
 	async cancelBooking() {
@@ -227,5 +229,9 @@ export class BookingDetailsPage {
 		await expect(this.notEligibleForRefund).toBeVisible({
 			timeout: 5000,
 		});
+	}
+
+	async verifyBookingNotFoundIsDisplayed() {
+		await expect(this.bookingNotFound).toBeVisible();
 	}
 }
