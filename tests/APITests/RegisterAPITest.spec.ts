@@ -1,64 +1,67 @@
 /** @format */
-
 import { test, expect } from '@playwright/test';
 import { TestData } from '../../TestData/TestData';
 import { RegisterAPI } from '../../api-methods/RegisterAPI';
 import { faker } from '@faker-js/faker';
 
-test(
-	'Valid register test',
-	{ tag: '@RegisterAPITest' },
-	async ({ request }) => {
-		const email = faker.internet.email();
-		const password = faker.internet.password({
-			length: 12,
-			memorable: false,
-			pattern: /[A-Za-z0-9!@#$%^&*]/,
-			prefix: 'Aa1!',
-		});
+test.describe('Register API Test', () => {
+	test(
+		'Valid register test',
+		{ tag: '@RegisterAPITest' },
+		async ({ request }) => {
+			const email: string = faker.internet.email();
+			const password: string = faker.internet.password({
+				length: 12,
+				memorable: false,
+				pattern: /[A-Za-z0-9!@#$%^&*]/,
+				prefix: 'Aa1!',
+			});
 
-		const registerResponse = await new RegisterAPI(
-			request,
-		).registerUser(email, password);
-		expect(registerResponse.ok()).toBeTruthy();
+			const registerResponse = await new RegisterAPI(
+				request,
+			).registerUser(email, password);
 
-		const responseBody = await registerResponse.json();
+			expect(registerResponse.ok()).toBeTruthy();
 
-		expect(responseBody.success).toBeTruthy();
-		expect(responseBody.token).toBeDefined();
-		expect(responseBody.user.email).toBe(email);
-		expect(responseBody.user.id).toBeDefined();
-	},
-);
+			const responseBody = await registerResponse.json();
 
-test(
-	'User exists register test',
-	{ tag: '@RegisterAPITest' },
-	async ({ request }) => {
-		const registerResponse = await new RegisterAPI(
-			request,
-		).registerUser(TestData.email, TestData.password);
-		expect(registerResponse.ok()).toBeFalsy;
+			expect(responseBody.success).toBeTruthy();
+			expect(responseBody.token).toBeDefined();
+			expect(responseBody.user.email).toBe(email);
+			expect(responseBody.user.id).toBeDefined();
+		},
+	);
 
-		const responseBody = await registerResponse.json();
+	test(
+		'User exists register test',
+		{ tag: '@RegisterAPITest' },
+		async ({ request }) => {
+			const registerResponse = await new RegisterAPI(
+				request,
+			).registerUser(TestData.email, TestData.password);
 
-		expect(responseBody.success).toBeFalsy();
-		expect(responseBody.error).toBeDefined();
-	},
-);
+			expect(registerResponse.ok()).toBeFalsy;
 
-test(
-	'Empty register test',
-	{ tag: '@RegisterAPITest' },
-	async ({ request }) => {
-		const registerResponse = await new RegisterAPI(
-			request,
-		).registerUser('', '');
+			const responseBody = await registerResponse.json();
 
-		const responseBody = await registerResponse.json();
+			expect(responseBody.success).toBeFalsy();
+			expect(responseBody.error).toBeDefined();
+		},
+	);
 
-		expect(responseBody.success).toBeFalsy();
-		expect(responseBody.token).toBeUndefined();
-		expect(responseBody.details).toBeDefined();
-	},
-);
+	test(
+		'Empty register test',
+		{ tag: '@RegisterAPITest' },
+		async ({ request }) => {
+			const registerResponse = await new RegisterAPI(
+				request,
+			).registerUser('', '');
+
+			const responseBody = await registerResponse.json();
+
+			expect(responseBody.success).toBeFalsy();
+			expect(responseBody.token).toBeUndefined();
+			expect(responseBody.details).toBeDefined();
+		},
+	);
+});

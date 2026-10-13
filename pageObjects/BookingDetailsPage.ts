@@ -7,35 +7,35 @@ import { PageManager } from './PageManager';
 import { MyBookingsPage } from './MyBookingsPage';
 import { EventsPage } from './EventsPage';
 export class BookingDetailsPage {
-	page: Page;
-	myBookingsBreadCrumb: Locator;
-	cancelBookingButton: Locator;
-	backToBookingsButton: Locator;
-	bookingRefId: Locator;
-	cancelDialog: Locator;
-	cancelDialogText: Locator;
-	confirmCancelButton: Locator;
-	cancelButtonInConfirmModel: Locator;
-	canceledToast: Locator;
-	bookingStatus: Locator;
-	eventNameTitle: Locator;
-	eventName: Locator;
-	eventCategory: Locator;
-	eventDate: Locator;
-	eventVenue: Locator;
-	eventCity: Locator;
-	customerName: Locator;
-	customerEmail: Locator;
-	customerPhoneNumber: Locator;
-	numberOfTickets: Locator;
-	pricePerTicket: Locator;
-	bookedOn: Locator;
-	bookingId: Locator;
-	totalCost: Locator;
-	checkForRefundButton: Locator;
-	eligibleForRefund: Locator;
-	notEligibleForRefund: Locator;
-	bookingNotFound: Locator;
+	private page: Page;
+	private myBookingsBreadCrumb: Locator;
+	private cancelBookingButton: Locator;
+	private backToBookingsButton: Locator;
+	private bookingRefId: Locator;
+	private cancelDialog: Locator;
+	private cancelDialogText: Locator;
+	private confirmCancelButton: Locator;
+	private cancelButtonInConfirmModel: Locator;
+	private canceledToast: Locator;
+	private bookingStatus: Locator;
+	private eventNameTitle: Locator;
+	private eventName: Locator;
+	private eventCategory: Locator;
+	private eventDate: Locator;
+	private eventVenue: Locator;
+	private eventCity: Locator;
+	private customerName: Locator;
+	private customerEmail: Locator;
+	private customerPhoneNumber: Locator;
+	private numberOfTickets: Locator;
+	private pricePerTicket: Locator;
+	private bookedOn: Locator;
+	private bookingId: Locator;
+	private totalCost: Locator;
+	private checkForRefundButton: Locator;
+	private eligibleForRefund: Locator;
+	private notEligibleForRefund: Locator;
+	private bookingNotFound: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -96,7 +96,9 @@ export class BookingDetailsPage {
 	}
 
 	async cancelBooking() {
-		const myBookingsPage = new MyBookingsPage(this.page);
+		const myBookingsPage: MyBookingsPage = new MyBookingsPage(
+			this.page,
+		);
 		await this.page.waitForTimeout(2000);
 		const bookingRefId = await this.bookingRefId.textContent();
 		await this.cancelBookingButton.click();
@@ -111,13 +113,17 @@ export class BookingDetailsPage {
 	}
 
 	async clickOnBackToBookings() {
-		const myBookingsPage = new MyBookingsPage(this.page);
+		const myBookingsPage: MyBookingsPage = new MyBookingsPage(
+			this.page,
+		);
 		await this.backToBookingsButton.click();
 		await myBookingsPage.isNavigatedToMyBookingsPage();
 	}
 
 	async clickOnMyBookingBreadCrumb() {
-		const myBookingsPage = new MyBookingsPage(this.page);
+		const myBookingsPage: MyBookingsPage = new MyBookingsPage(
+			this.page,
+		);
 		await this.backToBookingsButton.click();
 		await myBookingsPage.isNavigatedToMyBookingsPage();
 	}
@@ -137,10 +143,10 @@ export class BookingDetailsPage {
 		totalCost: string,
 		eventCategory: string,
 	) {
-		const lastCommaIndex = eventLocation.lastIndexOf(',');
+		const lastCommaIndex: number = eventLocation.lastIndexOf(',');
 
-		const location = eventLocation.slice(0, lastCommaIndex);
-		const city = eventLocation.slice(lastCommaIndex + 1).trim();
+		const location: string = eventLocation.slice(0, lastCommaIndex);
+		const city: string = eventLocation.slice(lastCommaIndex + 1).trim();
 
 		await expect(this.bookingRefId).toHaveText(bookingRefId);
 		await expect(this.bookingStatus).toBeVisible();
@@ -171,7 +177,7 @@ export class BookingDetailsPage {
 	}
 
 	async shortToLongDate(shortDate: string): Promise<string> {
-		const s = shortDate.trim();
+		const s: string = shortDate.trim();
 		// if already long (e.g., contains a full month name), return as-is
 		if (
 			/\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\b/.test(
@@ -181,8 +187,8 @@ export class BookingDetailsPage {
 			return s;
 		}
 
-		const year = new Date().getFullYear();
-		const parsed = new Date(`${s} ${year}`);
+		const year: number = new Date().getFullYear();
+		const parsed: Date = new Date(`${s} ${year}`);
 		if (isNaN(parsed.getTime())) {
 			throw new Error(`Invalid short date: "${shortDate}"`);
 		}
@@ -196,7 +202,7 @@ export class BookingDetailsPage {
 	}
 
 	async shortToFullWeekdayDate(shortDate: string): Promise<string> {
-		const s = shortDate.trim();
+		const s: string = shortDate.trim();
 		// If already long, return as-is
 		if (
 			/\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/.test(
@@ -206,7 +212,7 @@ export class BookingDetailsPage {
 			return s;
 		}
 
-		const d = new Date(s);
+		const d: Date = new Date(s);
 		if (isNaN(d.getTime())) {
 			throw new Error(`Invalid date: "${shortDate}"`);
 		}

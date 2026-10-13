@@ -3,15 +3,15 @@
 import { expect, Page, Locator } from '@playwright/test';
 
 export class ManageBookingsPage {
-	page: Page;
-	manageBookingsPageText: Locator;
-	bookingRows: Locator;
-	cancelBookingButton: Locator;
-	viewBookingButton: Locator;
-	cancelModal: Locator;
-	cancelButtonInModal: Locator;
-	bookingCanceledToast: Locator;
-	modalCloseButton: Locator;
+	private page: Page;
+	private manageBookingsPageText: Locator;
+	private bookingRows: Locator;
+	private cancelBookingButton: Locator;
+	private viewBookingButton: Locator;
+	private cancelModal: Locator;
+	private cancelButtonInModal: Locator;
+	private bookingCanceledToast: Locator;
+	private modalCloseButton: Locator;
 
 	constructor(page: Page) {
 		this.page = page;

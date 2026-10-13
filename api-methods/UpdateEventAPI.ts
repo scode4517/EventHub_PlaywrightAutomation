@@ -4,7 +4,7 @@ import { APIRequestContext, APIResponse } from '@playwright/test';
 import { TestData } from '../TestData/TestData';
 
 export class UpdateEventAPI {
-	request: APIRequestContext;
+	private request: APIRequestContext;
 
 	constructor(request: APIRequestContext) {
 		this.request = request;

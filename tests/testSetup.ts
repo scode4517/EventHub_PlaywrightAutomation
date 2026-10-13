@@ -1,35 +1,21 @@
 /** @format */
 
-import { test as base, expect, request } from '@playwright/test';
+import { test as base, expect, type Page } from '@playwright/test';
 import { PageManager } from '../pageObjects/PageManager';
 import { TestData } from '../TestData/TestData';
+import { LoginPage } from '../pageObjects/LoginPage';
+import { HomePage } from '../pageObjects/HomePage';
 
-export const test = base.extend({});
-export { expect } from '@playwright/test';
+export const test = base.extend<{ authenticatedPage: Page }>({
+	authenticatedPage: async ({ page }, use) => {
+		let loginPage: LoginPage = PageManager.getLoginPage(page);
+		let homePage: HomePage = PageManager.getHomePage(page);
 
-let token: string;
+		await loginPage.goto();
+		await loginPage.login(TestData.email, TestData.password);
 
-test.beforeAll(async ({ browser, request }) => {
-	const user = {
-		email: TestData.email,
-		password: TestData.password,
-	};
-	const loginResponse = await request.post(
-		TestData.apiUrl + '/auth/login',
-		{ data: user },
-	);
-	expect(loginResponse.ok()).toBeTruthy();
-	token = (await loginResponse.json()).token;
-	console.log(token);
-});
+		await use(page); // Provide the authenticated page to the test
 
-test.beforeEach(async ({ page, request }) => {
-	page.addInitScript((value) => {
-		window.localStorage.setItem('eventhub_token', value);
-	}, token);
-	await PageManager.getHomePage(page).goto();
-});
-
-test.afterEach(async ({ page }) => {
-	await PageManager.getHomePage(page).logout();
+		homePage.logout();
+	},
 });

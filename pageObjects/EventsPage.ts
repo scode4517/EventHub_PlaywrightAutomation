@@ -5,16 +5,16 @@ import { expect, Page, Locator } from '@playwright/test';
 import { PageManager } from './PageManager';
 
 export class EventsPage {
-	page: Page;
-	eventsPageText: Locator;
-	addNewEventButton: Locator;
-	categoryFilter: Locator;
-	eventCards: Locator;
-	noEventsFoundHeading: Locator;
-	noEventsFoundText: Locator;
-	clearFiltersButton: Locator;
-	cityFilter: Locator;
-	eventSearch: Locator;
+	private page: Page;
+	private eventsPageText: Locator;
+	private addNewEventButton: Locator;
+	private categoryFilter: Locator;
+	private eventCards: Locator;
+	private noEventsFoundHeading: Locator;
+	private noEventsFoundText: Locator;
+	private clearFiltersButton: Locator;
+	private cityFilter: Locator;
+	private eventSearch: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
