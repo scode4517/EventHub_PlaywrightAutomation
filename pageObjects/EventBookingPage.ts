@@ -7,37 +7,37 @@ import { PageManager } from './PageManager';
 import { MyBookingsPage } from './MyBookingsPage';
 import { EventsPage } from './EventsPage';
 export class EventBookingPage {
-	page: Page;
-	eventName: Locator;
-	eventDate: Locator;
-	eventTime: Locator;
-	eventLocation: Locator;
-	eventCity: Locator;
-	eventCost: Locator;
-	eventSeatsLeft: Locator;
-	breadCrumbLink: Locator;
-	tags: Locator;
-	featuredText: Locator;
-	totalCost: Locator;
-	ticketCount: Locator;
-	minusButton: Locator;
-	plusButton: Locator;
-	nameInput: Locator;
-	emailInput: Locator;
-	phoneNumberInput: Locator;
-	confirmBookingButton: Locator;
-	bookingConfirmedText: Locator;
-	bookingReferenceId: Locator;
-	bookingCustomerName: Locator;
-	ticketsBooked: Locator;
-	bookingCost: Locator;
-	nameError: Locator;
-	emailError: Locator;
-	phoneNumberError: Locator;
-	viewMyBookingsButton: Locator;
-	browseMoreEventsButton: Locator;
-	eventCategory: Locator;
-	eventNotFound: Locator;
+	private page: Page;
+	private eventName: Locator;
+	private eventDate: Locator;
+	private eventTime: Locator;
+	private eventLocation: Locator;
+	private eventCity: Locator;
+	private eventCost: Locator;
+	private eventSeatsLeft: Locator;
+	private breadCrumbLink: Locator;
+	private tags: Locator;
+	private featuredText: Locator;
+	private totalCost: Locator;
+	private ticketCount: Locator;
+	private minusButton: Locator;
+	private plusButton: Locator;
+	private nameInput: Locator;
+	private emailInput: Locator;
+	private phoneNumberInput: Locator;
+	private confirmBookingButton: Locator;
+	private bookingConfirmedText: Locator;
+	private bookingReferenceId: Locator;
+	private bookingCustomerName: Locator;
+	private ticketsBooked: Locator;
+	private bookingCost: Locator;
+	private nameError: Locator;
+	private emailError: Locator;
+	private phoneNumberError: Locator;
+	private viewMyBookingsButton: Locator;
+	private browseMoreEventsButton: Locator;
+	private eventCategory: Locator;
+	private eventNotFound: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -128,15 +128,15 @@ export class EventBookingPage {
 	) {
 		await expect(this.eventName).toHaveText(eventName);
 
-		const lastCommaIndex = eventLocation.lastIndexOf(',');
+		const lastCommaIndex: number = eventLocation.lastIndexOf(',');
 
-		const location = eventLocation.slice(0, lastCommaIndex);
-		const city = eventLocation.slice(lastCommaIndex + 1).trim();
+		const location: string = eventLocation.slice(0, lastCommaIndex);
+		const city: string = eventLocation.slice(lastCommaIndex + 1).trim();
 		eventSeatsLeft = eventSeatsLeft.split(' ')[0];
 
-		const year = new Date().getFullYear();
+		const year: number = new Date().getFullYear();
 
-		const date = new Date(`${eventDate} ${year}`);
+		const date: Date = new Date(`${eventDate} ${year}`);
 
 		const parts = new Intl.DateTimeFormat('en-GB', {
 			weekday: 'long',

@@ -8,148 +8,184 @@ import { faker } from '@faker-js/faker';
 import { CreateBookingsAPI } from '../../api-methods/CreateBookingsAPI';
 import { GetBookingByRefIdAPI } from '../../api-methods/GetBookingByRefIdAPI';
 
-test(
-	'Get booking with booking ref id details',
-	{ tag: '@GetBookingByRefIdAPITest' },
-	async ({ request }) => {
-		const token = await new LoginAPI(request).getToken(
+test.describe('Get Bookings By Ref Id API Test', () => {
+	let token: string;
+
+	test.beforeEach(async ({ request }) => {
+		token = await new LoginAPI(request).getToken(
 			TestData.email,
 			TestData.password,
 		);
+	});
 
-		const title = faker.word.noun();
-		const description = faker.lorem.paragraph();
-		const category = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const city = faker.location.city();
-		const venue = faker.location.streetAddress();
-		const dateTime = faker.date.future().toISOString();
-		const seats = faker.number.int({ min: 1, max: 1000 });
-		const price = faker.number.int({ min: 1, max: 1000 });
-		const imageUrl = faker.image.url();
+	test(
+		'Get booking with booking ref id details',
+		{ tag: '@GetBookingByRefIdAPITest' },
+		async ({ request }) => {
+			const title: string = faker.word.noun();
+			const description: string = faker.lorem.paragraph();
+			const category: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
+			const city: string = faker.location.city();
+			const venue: string = faker.location.streetAddress();
+			const dateTime: string = faker.date.future().toISOString();
+			const seats: number = faker.number.int({ min: 1, max: 1000 });
+			const price: number = faker.number.int({ min: 1, max: 1000 });
+			const imageUrl: string = faker.image.url();
+			const email: string = faker.internet.email();
+			const name: string = faker.person.fullName();
+			const phone: string = '1234567890';
+			const quantity: number = faker.number.int({
+				min: 1,
+				max: 10,
+			});
 
-		const email = faker.internet.email();
-		const name = faker.person.fullName();
-		const phone = '1234567890';
-		const quantity = faker.number.int({ min: 1, max: 10 });
+			const createBookingAPI = new CreateBookingsAPI(request);
 
-		const createBookingAPI = new CreateBookingsAPI(request);
-		const getBookingByRefIdAPI = new GetBookingByRefIdAPI(request);
+			const getBookingByRefIdAPI = new GetBookingByRefIdAPI(
+				request,
+			);
 
-		const createEventResponse = await new CreateEventAPI(
-			request,
-		).createEvent(
-			token,
-			title,
-			description,
-			category,
-			venue,
-			city,
-			dateTime,
-			price,
-			seats,
-			imageUrl,
-		);
+			const createEventResponse = await new CreateEventAPI(
+				request,
+			).createEvent(
+				token,
+				title,
+				description,
+				category,
+				venue,
+				city,
+				dateTime,
+				price,
+				seats,
+				imageUrl,
+			);
 
-		expect(createEventResponse.ok()).toBeTruthy();
+			expect(createEventResponse.ok()).toBeTruthy();
 
-		const responseBody = await createEventResponse.json();
-		const eventId: number = responseBody.data.id;
+			const responseBody = await createEventResponse.json();
 
-		const createBookingResponse = await createBookingAPI.createBooking(
-			token,
-			eventId,
-			name,
-			email,
-			phone,
-			quantity,
-		);
+			const eventId: number = responseBody.data.id;
 
-		expect(createBookingResponse.ok()).toBeTruthy();
+			const createBookingResponse =
+				await createBookingAPI.createBooking(
+					token,
+					eventId,
+					name,
+					email,
+					phone,
+					quantity,
+				);
 
-		const refId = await createBookingAPI.getBookingRefId(
-			createBookingResponse,
-		);
+			expect(createBookingResponse.ok()).toBeTruthy();
 
-		const bookingResponse =
-			await getBookingByRefIdAPI.getBookingByRefId(token, refId);
+			const refId: string = await createBookingAPI.getBookingRefId(
+				createBookingResponse,
+			);
 
-		expect(bookingResponse.ok()).toBeTruthy();
+			const bookingResponse =
+				await getBookingByRefIdAPI.getBookingByRefId(
+					token,
+					refId,
+				);
 
-		const createBookingResponseBody = await bookingResponse.json();
+			expect(bookingResponse.ok()).toBeTruthy();
 
-		expect(createBookingResponseBody.success).toBeTruthy();
-		expect(createBookingResponseBody.data.id).toBeDefined();
-		expect(createBookingResponseBody.data.eventId).toBe(eventId);
-		expect(createBookingResponseBody.data.customerName).toBe(name);
-		expect(createBookingResponseBody.data.customerEmail).toBe(
-			email.toLowerCase(),
-		);
-		expect(createBookingResponseBody.data.customerPhone).toBe(phone);
-		expect(createBookingResponseBody.data.quantity).toBe(quantity);
-		expect(createBookingResponseBody.data.totalPrice).toBe(
-			(quantity * price).toString(),
-		);
-		expect(createBookingResponseBody.data.status).toBe('confirmed');
-		expect(createBookingResponseBody.data.bookingRef).toBeDefined();
+			const createBookingResponseBody =
+				await bookingResponse.json();
 
-		expect(createBookingResponseBody.data.event.id).toBeDefined();
-		expect(createBookingResponseBody.data.event.title).toBe(title);
-		expect(createBookingResponseBody.data.event.description).toBe(
-			description,
-		);
-		expect(createBookingResponseBody.data.event.category).toBe(
-			category,
-		);
-		expect(createBookingResponseBody.data.event.venue).toBe(venue);
-		expect(createBookingResponseBody.data.event.city).toBe(city);
-		expect(createBookingResponseBody.data.event.eventDate).toBe(
-			dateTime,
-		);
-		expect(createBookingResponseBody.data.event.price).toBe(
-			price.toString(),
-		);
-		expect(createBookingResponseBody.data.event.totalSeats).toBe(seats);
-	},
-);
+			expect(createBookingResponseBody.success).toBeTruthy();
+			expect(createBookingResponseBody.data.id).toBeDefined();
+			expect(createBookingResponseBody.data.eventId).toBe(eventId);
+			expect(createBookingResponseBody.data.customerName).toBe(
+				name,
+			);
+			expect(createBookingResponseBody.data.customerEmail).toBe(
+				email.toLowerCase(),
+			);
+			expect(createBookingResponseBody.data.customerPhone).toBe(
+				phone,
+			);
+			expect(createBookingResponseBody.data.quantity).toBe(
+				quantity,
+			);
+			expect(createBookingResponseBody.data.totalPrice).toBe(
+				(quantity * price).toString(),
+			);
+			expect(createBookingResponseBody.data.status).toBe(
+				'confirmed',
+			);
+			expect(
+				createBookingResponseBody.data.bookingRef,
+			).toBeDefined();
+			expect(createBookingResponseBody.data.event.id).toBeDefined();
+			expect(createBookingResponseBody.data.event.title).toBe(
+				title,
+			);
+			expect(createBookingResponseBody.data.event.description).toBe(
+				description,
+			);
+			expect(createBookingResponseBody.data.event.category).toBe(
+				category,
+			);
+			expect(createBookingResponseBody.data.event.venue).toBe(
+				venue,
+			);
+			expect(createBookingResponseBody.data.event.city).toBe(city);
+			expect(createBookingResponseBody.data.event.eventDate).toBe(
+				dateTime,
+			);
+			expect(createBookingResponseBody.data.event.price).toBe(
+				price.toString(),
+			);
+			expect(createBookingResponseBody.data.event.totalSeats).toBe(
+				seats,
+			);
+		},
+	);
 
-test(
-	'Get booking with ref id details that does not exist',
-	{ tag: '@GetBookingByRefIdAPITest' },
-	async ({ request }) => {
-		const token = await new LoginAPI(request).getToken(
-			TestData.email,
-			TestData.password,
-		);
+	test(
+		'Get booking with ref id details that does not exist',
+		{ tag: '@GetBookingByRefIdAPITest' },
+		async ({ request }) => {
+			const getBookingByRefIdAPI = new GetBookingByRefIdAPI(
+				request,
+			);
 
-		const getBookingByRefIdAPI = new GetBookingByRefIdAPI(request);
-		const bookingResponse =
-			await getBookingByRefIdAPI.getBookingByRefId(token, '0');
+			const bookingResponse =
+				await getBookingByRefIdAPI.getBookingByRefId(
+					token,
+					'0',
+				);
 
-		expect(bookingResponse.ok()).toBeFalsy();
+			expect(bookingResponse.ok()).toBeFalsy();
 
-		const getEventResponseBody = await bookingResponse.json();
+			const getEventResponseBody = await bookingResponse.json();
 
-		expect(getEventResponseBody.success).toBeFalsy();
-		expect(getEventResponseBody.error).toBe(
-			'Booking with reference \"0\" not found',
-		);
-	},
-);
+			expect(getEventResponseBody.success).toBeFalsy();
+			expect(getEventResponseBody.error).toBe(
+				'Booking with reference \"0\" not found',
+			);
+		},
+	);
 
-test(
-	'Get booking with no token test',
-	{ tag: '@GetBookingByRefIdAPITest' },
-	async ({ request }) => {
-		const getBookingByRefIdAPI = new GetBookingByRefIdAPI(request);
-		const bookingResponse =
-			await getBookingByRefIdAPI.getBookingByRefId('', '0');
+	test(
+		'Get booking with no token test',
+		{ tag: '@GetBookingByRefIdAPITest' },
+		async ({ request }) => {
+			const getBookingByRefIdAPI = new GetBookingByRefIdAPI(
+				request,
+			);
 
-		expect(bookingResponse.ok()).toBeFalsy();
+			const bookingResponse =
+				await getBookingByRefIdAPI.getBookingByRefId('', '0');
 
-		const responseBody = await bookingResponse.json();
+			expect(bookingResponse.ok()).toBeFalsy();
 
-		expect(responseBody.success).toBeFalsy();
-	},
-);
+			const responseBody = await bookingResponse.json();
+
+			expect(responseBody.success).toBeFalsy();
+		},
+	);
+});

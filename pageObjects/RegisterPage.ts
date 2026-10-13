@@ -3,16 +3,16 @@
 import { expect, Page, Locator } from '@playwright/test';
 
 export class RegisterPage {
-	page: Page;
-	usernameInput: Locator;
-	passwordInput: Locator;
-	registerButton: Locator;
-	registerLink: Locator;
-	loginLink: Locator;
-	confirmPasswordInput: Locator;
-	invalidEmail: Locator;
-	invalidPassword: Locator;
-	mismatchPasswordError: Locator;
+	private page: Page;
+	private usernameInput: Locator;
+	private passwordInput: Locator;
+	private registerButton: Locator;
+	private registerLink: Locator;
+	private loginLink: Locator;
+	private confirmPasswordInput: Locator;
+	private invalidEmail: Locator;
+	private invalidPassword: Locator;
+	private mismatchPasswordError: Locator;
 
 	constructor(page: Page) {
 		this.page = page;

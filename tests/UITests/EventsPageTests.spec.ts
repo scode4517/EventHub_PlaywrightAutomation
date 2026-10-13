@@ -3,80 +3,85 @@
 import { test } from '../testSetup';
 import { PageManager } from '../../pageObjects/PageManager';
 import { TestData } from '../../TestData/TestData';
+import { HomePage } from '../../pageObjects/HomePage';
+import { EventBookingPage } from '../../pageObjects/EventBookingPage';
+import { MyBookingsPage } from '../../pageObjects/MyBookingsPage';
+import { BookingDetailsPage } from '../../pageObjects/BookingDetailsPage';
+import { EventsPage } from '../../pageObjects/EventsPage';
 
-test.beforeEach(async ({ page }) => {
-	const loginPage = PageManager.getLoginPage(page);
-	await PageManager.getLoginPage(page).login(
-		TestData.email,
-		TestData.password,
-	);
-	const homePage = PageManager.getHomePage(page);
+test.describe('Booking Details Test', () => {
+	let homePage: HomePage;
+	let eventBookingPage: EventBookingPage;
+	let myBookingsPage: MyBookingsPage;
+	let bookingDetailsPage: BookingDetailsPage;
+	let eventsPage: EventsPage;
 
-	await homePage.clickOnBrowseEventsButton();
-});
+	test.beforeEach(async ({ authenticatedPage }) => {
+		homePage = PageManager.getHomePage(authenticatedPage);
+		eventBookingPage =
+			PageManager.getEventBookingPage(authenticatedPage);
+		myBookingsPage = PageManager.getMyBookingsPage(authenticatedPage);
+		bookingDetailsPage =
+			PageManager.getBookingDetailsPage(authenticatedPage);
+		eventsPage = PageManager.getEventsPage(authenticatedPage);
+		await homePage.clickOnBrowseEventsButton();
+	});
 
-test(
-	'Navigate to event bookings page and verify event details match from events page to bookings page',
-	{ tag: '@EventsPageTest' },
-	async ({ page }) => {
-		const homePage = PageManager.getHomePage(page);
+	test(
+		'Navigate to event bookings page and verify event details match from events page to bookings page',
+		{ tag: '@EventsPageTest' },
+		async ({ authenticatedPage }) => {
+			const eventDetails: string[] =
+				await homePage.readEventDetailsAndClickOnEventCardByName(
+					'RND',
+				);
+			await authenticatedPage.waitForLoadState('networkidle');
+			const [
+				eventName,
+				eventDate,
+				eventLocation,
+				eventCost,
+				eventSeatsLeft,
+			] = eventDetails;
 
-		const eventDetails: string[] =
-			await homePage.readEventDetailsAndClickOnEventCardByName(
-				'RND',
+			eventBookingPage.isNavigatedToEventBookingPage(
+				eventName,
+				eventDate,
+				eventLocation,
+				eventCost,
+				eventSeatsLeft,
 			);
-		await page.waitForLoadState('networkidle');
-		const [
-			eventName,
-			eventDate,
-			eventLocation,
-			eventCost,
-			eventSeatsLeft,
-		] = eventDetails;
+		},
+	);
 
-		const eventBookingPage = PageManager.getEventBookingPage(page);
-		eventBookingPage.isNavigatedToEventBookingPage(
-			eventName,
-			eventDate,
-			eventLocation,
-			eventCost,
-			eventSeatsLeft,
-		);
-	},
-);
+	test(
+		'Navigate to add events page using add new events button test',
+		{ tag: '@EventsPageTest' },
+		async () => {
+			await eventsPage.clickOnAddNewEventsButton();
+		},
+	);
 
-test(
-	'Navigate to add events page using add new events button test',
-	{ tag: '@EventsPageTest' },
-	async ({ page }) => {
-		const eventsPage = PageManager.getEventsPage(page);
-		await eventsPage.clickOnAddNewEventsButton();
-	},
-);
+	test(
+		'Apply category filter test',
+		{ tag: '@EventsPageTest' },
+		async () => {
+			const category = await eventsPage.selectCategory('RND');
+			await eventsPage.verifyCategoryFilterIsApplied(category);
+		},
+	);
 
-test(
-	'Apply category filter test',
-	{ tag: '@EventsPageTest' },
-	async ({ page }) => {
-		const eventsPage = PageManager.getEventsPage(page);
-		const category = await eventsPage.selectCategory('RND');
-		await eventsPage.verifyCategoryFilterIsApplied(category);
-	},
-);
+	test('Clear filters test', { tag: '@EventsPageTest' }, async () => {
+		await eventsPage.verifyClearButtonClearsAllFiltersAndDisplaysAllEvents();
+	});
 
-test('Clear filters test', { tag: '@EventsPageTest' }, async ({ page }) => {
-	const eventsPage = PageManager.getEventsPage(page);
-	await eventsPage.verifyClearButtonClearsAllFiltersAndDisplaysAllEvents();
-});
+	test('Apply city filter test', { tag: '@EventsPageTest' }, async () => {
+		const city = await eventsPage.selectCity('RND');
+		await eventsPage.verifyCityFilterIsApplied(city);
+	});
 
-test('Apply city filter test', { tag: '@EventsPageTest' }, async ({ page }) => {
-	const eventsPage = PageManager.getEventsPage(page);
-	const city = await eventsPage.selectCity('RND');
-	await eventsPage.verifyCityFilterIsApplied(city);
-});
-
-test('search event test', { tag: '@EventsPageTest' }, async ({ page }) => {
-	const eventsPage = PageManager.getEventsPage(page);
-	const eventName = await eventsPage.searchEvent('RND');
-	await eventsPage.verifySearchEventFilterIsApplied(eventName);
+	test('search event test', { tag: '@EventsPageTest' }, async () => {
+		const eventName = await eventsPage.searchEvent('RND');
+		await eventsPage.verifySearchEventFilterIsApplied(eventName);
+	});
 });

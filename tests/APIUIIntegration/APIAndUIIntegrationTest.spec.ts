@@ -15,805 +15,858 @@ import { GetEventByIdAPI } from '../../api-methods/GetEventByIdAPI';
 import { UpdateEventAPI } from '../../api-methods/UpdateEventAPI';
 import { CreateBookingsAPI } from '../../api-methods/CreateBookingsAPI';
 import { GetBookingByRefIdAPI } from '../../api-methods/GetBookingByRefIdAPI';
+import { EventBookingPage } from '../../pageObjects/EventBookingPage';
+import { MyBookingsPage } from '../../pageObjects/MyBookingsPage';
+import { BookingDetailsPage } from '../../pageObjects/BookingDetailsPage';
+import { ManageEventsPage } from '../../pageObjects/ManageEventsPage';
+import { ManageBookingsPage } from '../../pageObjects/ManageBookingsPage';
 
-test(
-	'Register a user from API and login using UI',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const email: string = faker.internet.email();
-		const password: string = faker.internet.password({
-			length: 12,
-			memorable: false,
-			pattern: /[A-Za-z0-9!@#$%^&*]/,
-			prefix: 'Aa1!',
-		});
+test.describe('API And UI Integration Test', () => {
+	let loginPage: LoginPage;
+	let homePage: HomePage;
+	let eventBookingPage: EventBookingPage;
+	let myBookingsPage: MyBookingsPage;
+	let bookingDetailsPage: BookingDetailsPage;
+	let manageEventsPage: ManageEventsPage;
+	let manageBookingsPage: ManageBookingsPage;
+	let registerPage: RegisterPage;
 
-		const registerResponse = await new RegisterAPI(
-			request,
-		).registerUser(email, password);
-		expect(registerResponse.ok()).toBeTruthy();
+	test.beforeEach(async ({ page }) => {
+		loginPage = PageManager.getLoginPage(page);
+		homePage = PageManager.getHomePage(page);
+		eventBookingPage = PageManager.getEventBookingPage(page);
+		myBookingsPage = PageManager.getMyBookingsPage(page);
+		bookingDetailsPage = PageManager.getBookingDetailsPage(page);
+		manageEventsPage = PageManager.getManageEventsPage(page);
+		manageBookingsPage = PageManager.getManageBookingsPage(page);
+		registerPage = PageManager.getRegisterPage(page);
+	});
 
-		const responseBody = await registerResponse.json();
+	test(
+		'Register a user from API and login using UI',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			const email: string = faker.internet.email();
+			const password: string = faker.internet.password({
+				length: 12,
+				memorable: false,
+				pattern: /[A-Za-z0-9!@#$%^&*]/,
+				prefix: 'Aa1!',
+			});
 
-		expect(responseBody.success).toBeTruthy();
-		expect(responseBody.token).toBeDefined();
-		expect(responseBody.user.email).toBe(email);
-		expect(responseBody.user.id).toBeDefined();
+			const registerResponse = await new RegisterAPI(
+				request,
+			).registerUser(email, password);
+			expect(registerResponse.ok()).toBeTruthy();
 
-		const loginPage: LoginPage = PageManager.getLoginPage(page);
-		const homePage: HomePage = PageManager.getHomePage(page);
-		await loginPage.goto();
-		await loginPage.login(email, password);
-		await homePage.isNavigatedToHomePage(email);
-	},
-);
+			const responseBody = await registerResponse.json();
+			expect(responseBody.success).toBeTruthy();
+			expect(responseBody.token).toBeDefined();
+			expect(responseBody.user.email).toBe(email);
+			expect(responseBody.user.id).toBeDefined();
 
-test(
-	'Register a user from UI and login using API',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const registerPage: RegisterPage =
-			PageManager.getRegisterPage(page);
-		const homePage: HomePage = PageManager.getHomePage(page);
-		await registerPage.goto();
+			await loginPage.goto();
+			await loginPage.login(email, password);
+			await homePage.isNavigatedToHomePage(email);
+		},
+	);
 
-		const email: string = faker.internet.email();
-		const password: string = faker.internet.password({
-			length: 12,
-			memorable: false,
-			pattern: /[A-Za-z0-9!@#$%^&*]/,
-			prefix: 'Aa1!',
-		});
-		await registerPage.register(email, password, password);
-		await homePage.isNavigatedToHomePage(email);
+	test(
+		'Register a user from UI and login using API',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			await registerPage.goto();
 
-		const loginResponse = await new LoginAPI(request).callLoginAPI(
-			email,
-			password,
-		);
-		expect(loginResponse.ok()).toBeTruthy();
+			const email: string = faker.internet.email();
+			const password: string = faker.internet.password({
+				length: 12,
+				memorable: false,
+				pattern: /[A-Za-z0-9!@#$%^&*]/,
+				prefix: 'Aa1!',
+			});
 
-		const responseBody = await loginResponse.json();
+			await registerPage.register(email, password, password);
+			await homePage.isNavigatedToHomePage(email);
 
-		expect(responseBody.success).toBeTruthy();
-		expect(responseBody.token).toBeDefined();
-		expect(responseBody.user.email).toBe(email);
-	},
-);
+			const loginResponse = await new LoginAPI(
+				request,
+			).callLoginAPI(email, password);
 
-test(
-	'Create a event from api and verify details in UI',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const token: string = await new LoginAPI(request).getToken(
-			TestData.email,
-			TestData.password,
-		);
+			expect(loginResponse.ok()).toBeTruthy();
 
-		const title: string = faker.word.noun();
-		const description: string = faker.lorem.paragraph();
-		const category: string = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const city: string = faker.location.city();
-		const venue: string = faker.location.streetAddress();
-		const dateTime: string = faker.date.future().toISOString();
-		const seats: number = faker.number.int({ min: 1, max: 1000 });
-		const price: number = faker.number.int({ min: 1, max: 1000 });
-		const imageUrl: string = faker.image.url();
+			const responseBody = await loginResponse.json();
+			expect(responseBody.success).toBeTruthy();
+			expect(responseBody.token).toBeDefined();
+			expect(responseBody.user.email).toBe(email);
+		},
+	);
 
-		const createEventResponse = await new CreateEventAPI(
-			request,
-		).createEvent(
-			token,
-			title,
-			description,
-			category,
-			venue,
-			city,
-			dateTime,
-			price,
-			seats,
-			imageUrl,
-		);
+	test(
+		'Create a event from api and verify details in UI',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			const token: string = await new LoginAPI(request).getToken(
+				TestData.email,
+				TestData.password,
+			);
 
-		expect(createEventResponse.ok()).toBeTruthy();
+			const title: string = faker.word.noun();
+			const description: string = faker.lorem.paragraph();
+			const category: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
 
-		const responseBody = await createEventResponse.json();
-		const eventId: number = responseBody.data.id;
+			const city: string = faker.location.city();
+			const venue: string = faker.location.streetAddress();
+			const dateTime: string = faker.date.future().toISOString();
+			const seats: number = faker.number.int({ min: 1, max: 1000 });
+			const price: number = faker.number.int({ min: 1, max: 1000 });
+			const imageUrl: string = faker.image.url();
 
-		expect(responseBody.success).toBeTruthy();
-		expect(responseBody.message).toBe('Event created successfully');
-		expect(responseBody.data).toBeDefined();
-		expect(responseBody.data.id).toBeDefined();
-		expect(responseBody.data.title).toBe(title);
-		expect(responseBody.data.description).toBe(description);
-		expect(responseBody.data.category).toBe(category);
-		expect(responseBody.data.venue).toBe(venue);
-		expect(responseBody.data.city).toBe(city);
-		expect(responseBody.data.eventDate).toBe(dateTime);
-		expect(responseBody.data.price).toBe(price.toString());
-		expect(responseBody.data.totalSeats).toBe(seats);
+			const createEventResponse = await new CreateEventAPI(
+				request,
+			).createEvent(
+				token,
+				title,
+				description,
+				category,
+				venue,
+				city,
+				dateTime,
+				price,
+				seats,
+				imageUrl,
+			);
 
-		const loginPage: LoginPage = PageManager.getLoginPage(page);
-		const homePage: HomePage = PageManager.getHomePage(page);
-		await loginPage.goto();
-		await loginPage.login(TestData.email, TestData.password);
+			expect(createEventResponse.ok()).toBeTruthy();
 
-		await homePage.clickOnBrowseEventsButton();
+			const responseBody = await createEventResponse.json();
 
-		const eventDetails: string[] =
+			expect(responseBody.success).toBeTruthy();
+			expect(responseBody.message).toBe(
+				'Event created successfully',
+			);
+			expect(responseBody.data).toBeDefined();
+			expect(responseBody.data.id).toBeDefined();
+			expect(responseBody.data.title).toBe(title);
+			expect(responseBody.data.description).toBe(description);
+			expect(responseBody.data.category).toBe(category);
+			expect(responseBody.data.venue).toBe(venue);
+			expect(responseBody.data.city).toBe(city);
+			expect(responseBody.data.eventDate).toBe(dateTime);
+			expect(responseBody.data.price).toBe(price.toString());
+			expect(responseBody.data.totalSeats).toBe(seats);
+
+			await loginPage.goto();
+			await loginPage.login(TestData.email, TestData.password);
+			await homePage.clickOnBrowseEventsButton();
+
 			await homePage.readEventDetailsAndClickOnEventCardByName(
 				title,
 			);
-		await page.waitForLoadState('networkidle');
-		const [
-			eventName,
-			eventDate,
-			eventLocation,
-			eventCost,
-			eventSeatsLeft,
-		] = eventDetails;
 
-		const eventBookingPage = PageManager.getEventBookingPage(page);
-		await eventBookingPage.isNavigatedToEventBookingPage(
-			title,
-			dateTime,
-			venue,
-			price.toString(),
-			seats.toString(),
-		);
-	},
-);
+			await page.waitForLoadState('networkidle');
 
-test(
-	'Create a event from ui and verify details in api',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const token: string = await new LoginAPI(request).getToken(
-			TestData.email,
-			TestData.password,
-		);
+			await eventBookingPage.isNavigatedToEventBookingPage(
+				title,
+				dateTime,
+				venue,
+				price.toString(),
+				seats.toString(),
+			);
+		},
+	);
 
-		const title: string = faker.word.noun();
-		const description: string = faker.lorem.paragraph();
-		const category: string = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const city: string = faker.location.city();
-		const venue: string = faker.location.streetAddress();
-		const dateTime: string = faker.date
-			.future()
-			.toISOString()
-			.slice(0, 16);
-		const seats: number = faker.number.int({ min: 1, max: 1000 });
-		const price: number = faker.number.int({ min: 1, max: 1000 });
-		const imageUrl: string = faker.image.url();
+	test(
+		'Create a event from ui and verify details in api',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			const token: string = await new LoginAPI(request).getToken(
+				TestData.email,
+				TestData.password,
+			);
 
-		const loginPage = PageManager.getLoginPage(page);
-		await loginPage.goto();
-		await loginPage.login(TestData.email, TestData.password);
-		const homePage = PageManager.getHomePage(page);
-		await homePage.gotoManageEventsPage();
-		const manageEventsPage = PageManager.getManageEventsPage(page);
+			const title: string = faker.word.noun();
+			const description: string = faker.lorem.paragraph();
+			const category: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
+			const city: string = faker.location.city();
+			const venue: string = faker.location.streetAddress();
+			const dateTime: string = faker.date
+				.future()
+				.toISOString()
+				.slice(0, 16);
+			const seats: number = faker.number.int({ min: 1, max: 1000 });
+			const price: number = faker.number.int({ min: 1, max: 1000 });
+			const imageUrl: string = faker.image.url();
 
-		await manageEventsPage.createNewEvent(
-			title,
-			description,
-			category,
-			city,
-			venue,
-			dateTime,
-			seats.toString(),
-			price.toString(),
-			imageUrl,
-		);
+			await loginPage.goto();
+			await loginPage.login(TestData.email, TestData.password);
+			await homePage.gotoManageEventsPage();
 
-		const getAllEventsAPIResponse = await new GetEventListAPI(
-			request,
-		).getAllEvents(token, category, city, title);
+			await manageEventsPage.createNewEvent(
+				title,
+				description,
+				category,
+				city,
+				venue,
+				dateTime,
+				seats.toString(),
+				price.toString(),
+				imageUrl,
+			);
 
-		expect(getAllEventsAPIResponse.ok()).toBeTruthy();
+			const getAllEventsAPIResponse = await new GetEventListAPI(
+				request,
+			).getAllEvents(token, category, city, title);
 
-		const responseBody = await getAllEventsAPIResponse.json();
+			expect(getAllEventsAPIResponse.ok()).toBeTruthy();
 
-		expect(responseBody.success).toBeTruthy();
-		const id: number = responseBody.data[0].id;
+			const responseBody = await getAllEventsAPIResponse.json();
 
-		const getEventByIdResponse = await new GetEventByIdAPI(
-			request,
-		).getEventById(token, id);
+			expect(responseBody.success).toBeTruthy();
 
-		expect(getEventByIdResponse.ok()).toBeTruthy();
+			const id: number = responseBody.data[0].id;
 
-		const getEventsResponseBody = await getEventByIdResponse.json();
+			const getEventByIdResponse = await new GetEventByIdAPI(
+				request,
+			).getEventById(token, id);
 
-		expect(getEventsResponseBody.data.title).toBe(title);
-		expect(getEventsResponseBody.data.description).toBe(description);
-		expect(getEventsResponseBody.data.category).toBe(category);
-		expect(getEventsResponseBody.data.venue).toBe(venue);
-		expect(getEventsResponseBody.data.city).toBe(city);
-		// expect(getEventsResponseBody.data.eventDate).toBe(dateTime);
-		expect(getEventsResponseBody.data.price).toBe(price.toString());
-		expect(getEventsResponseBody.data.totalSeats).toBe(seats);
-		expect(getEventsResponseBody.data.imageUrl).toBe(imageUrl);
-	},
-);
+			expect(getEventByIdResponse.ok()).toBeTruthy();
 
-test(
-	'Update a event from api and verify details in UI',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const token: string = await new LoginAPI(request).getToken(
-			TestData.email,
-			TestData.password,
-		);
+			const getEventsResponseBody =
+				await getEventByIdResponse.json();
 
-		const title: string = faker.word.noun();
-		const description: string = faker.lorem.paragraph();
-		const category: string = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const city: string = faker.location.city();
-		const venue: string = faker.location.streetAddress();
-		const dateTime: string = faker.date.future().toISOString();
-		const seats: number = faker.number.int({ min: 1, max: 1000 });
-		const price: number = faker.number.int({ min: 1, max: 1000 });
-		const imageUrl: string = faker.image.url();
+			expect(getEventsResponseBody.data.title).toBe(title);
+			expect(getEventsResponseBody.data.description).toBe(
+				description,
+			);
+			expect(getEventsResponseBody.data.category).toBe(category);
+			expect(getEventsResponseBody.data.venue).toBe(venue);
+			expect(getEventsResponseBody.data.city).toBe(city);
+			// expect(getEventsResponseBody.data.eventDate).toBe(dateTime);
+			expect(getEventsResponseBody.data.price).toBe(
+				price.toString(),
+			);
+			expect(getEventsResponseBody.data.totalSeats).toBe(seats);
+			expect(getEventsResponseBody.data.imageUrl).toBe(imageUrl);
+		},
+	);
 
-		const createEventResponse = await new CreateEventAPI(
-			request,
-		).createEvent(
-			token,
-			title,
-			description,
-			category,
-			venue,
-			city,
-			dateTime,
-			price,
-			seats,
-			imageUrl,
-		);
+	test(
+		'Update a event from api and verify details in UI',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			const token: string = await new LoginAPI(request).getToken(
+				TestData.email,
+				TestData.password,
+			);
 
-		expect(createEventResponse.ok()).toBeTruthy();
+			const title: string = faker.word.noun();
+			const description: string = faker.lorem.paragraph();
+			const category: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
+			const city: string = faker.location.city();
+			const venue: string = faker.location.streetAddress();
+			const dateTime: string = faker.date.future().toISOString();
+			const seats: number = faker.number.int({ min: 1, max: 1000 });
+			const price: number = faker.number.int({ min: 1, max: 1000 });
+			const imageUrl: string = faker.image.url();
 
-		const responseBody = await createEventResponse.json();
-		const eventId: number = responseBody.data.id;
+			const createEventResponse = await new CreateEventAPI(
+				request,
+			).createEvent(
+				token,
+				title,
+				description,
+				category,
+				venue,
+				city,
+				dateTime,
+				price,
+				seats,
+				imageUrl,
+			);
 
-		const updateEventResponse = await new UpdateEventAPI(
-			request,
-		).updateEvent(
-			eventId,
-			token,
-			title,
-			description,
-			category,
-			venue,
-			city,
-			dateTime,
-			price + 1,
-			seats,
-			imageUrl,
-		);
+			expect(createEventResponse.ok()).toBeTruthy();
 
-		expect(updateEventResponse.ok()).toBeTruthy();
+			const responseBody = await createEventResponse.json();
 
-		const updateEventResponseBody = await updateEventResponse.json();
+			const eventId: number = responseBody.data.id;
 
-		expect(updateEventResponseBody.data.title).toBe(title);
-		expect(updateEventResponseBody.data.description).toBe(description);
-		expect(updateEventResponseBody.data.category).toBe(category);
-		expect(updateEventResponseBody.data.venue).toBe(venue);
-		expect(updateEventResponseBody.data.city).toBe(city);
-		expect(updateEventResponseBody.data.eventDate).toBe(dateTime);
-		expect(updateEventResponseBody.data.price).toBe(
-			(price + 1).toString(),
-		);
-		expect(updateEventResponseBody.data.totalSeats).toBe(seats);
+			const updateEventResponse = await new UpdateEventAPI(
+				request,
+			).updateEvent(
+				eventId,
+				token,
+				title,
+				description,
+				category,
+				venue,
+				city,
+				dateTime,
+				price + 1,
+				seats,
+				imageUrl,
+			);
 
-		const loginPage: LoginPage = PageManager.getLoginPage(page);
-		const homePage: HomePage = PageManager.getHomePage(page);
-		await loginPage.goto();
-		await loginPage.login(TestData.email, TestData.password);
+			expect(updateEventResponse.ok()).toBeTruthy();
 
-		await homePage.clickOnBrowseEventsButton();
+			const updateEventResponseBody =
+				await updateEventResponse.json();
 
-		const eventDetails: string[] =
+			expect(updateEventResponseBody.data.title).toBe(title);
+			expect(updateEventResponseBody.data.description).toBe(
+				description,
+			);
+			expect(updateEventResponseBody.data.category).toBe(category);
+			expect(updateEventResponseBody.data.venue).toBe(venue);
+			expect(updateEventResponseBody.data.city).toBe(city);
+			expect(updateEventResponseBody.data.eventDate).toBe(dateTime);
+			expect(updateEventResponseBody.data.price).toBe(
+				(price + 1).toString(),
+			);
+			expect(updateEventResponseBody.data.totalSeats).toBe(seats);
+
+			await loginPage.goto();
+			await loginPage.login(TestData.email, TestData.password);
+			await homePage.clickOnBrowseEventsButton();
 			await homePage.readEventDetailsAndClickOnEventCardByName(
 				title,
 			);
-		await page.waitForLoadState('networkidle');
-		const [
-			eventName,
-			eventDate,
-			eventLocation,
-			eventCost,
-			eventSeatsLeft,
-		] = eventDetails;
 
-		const eventBookingPage = PageManager.getEventBookingPage(page);
-		await eventBookingPage.isNavigatedToEventBookingPage(
-			title,
-			dateTime,
-			venue,
-			(price + 1).toString(),
-			seats.toString(),
-		);
-	},
-);
+			await page.waitForLoadState('networkidle');
 
-test(
-	'Update a event from ui and verify details in api',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const loginPage = PageManager.getLoginPage(page);
-		await loginPage.goto();
-		await loginPage.login(TestData.email, TestData.password);
-		const homePage = PageManager.getHomePage(page);
-		await homePage.gotoManageEventsPage();
+			await eventBookingPage.isNavigatedToEventBookingPage(
+				title,
+				dateTime,
+				venue,
+				(price + 1).toString(),
+				seats.toString(),
+			);
+		},
+	);
 
-		const manageEventsPage = PageManager.getManageEventsPage(page);
-		const title = faker.word.noun();
-		const description = faker.lorem.paragraph();
-		const category = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const city = faker.location.city();
-		const venue = faker.location.streetAddress();
-		const dateTime = faker.date.future().toISOString().slice(0, 16);
-		const seats = faker.number.int({ min: 1, max: 1000 }).toString();
-		const price = faker.number.int({ min: 1, max: 1000 }).toString();
-		const imageUrl = faker.image.url();
-		await manageEventsPage.createNewEvent(
-			title,
-			description,
-			category,
-			city,
-			venue,
-			dateTime,
-			seats,
-			price,
-			imageUrl,
-		);
+	test(
+		'Update a event from ui and verify details in api',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			await loginPage.goto();
+			await loginPage.login(TestData.email, TestData.password);
+			await homePage.gotoManageEventsPage();
 
-		const newTitle = faker.word.noun();
-		const newDescription = faker.lorem.paragraph();
-		const newCategory = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const newCity = faker.location.city();
-		const newVenue = faker.location.streetAddress();
-		const newDateTime = faker.date.future().toISOString().slice(0, 16);
-		const newSeats = faker.number.int({ min: 1, max: 1000 }).toString();
-		const newPrice = faker.number.int({ min: 1, max: 1000 }).toString();
-		const newImageUrl = faker.image.url();
+			const title: string = faker.word.noun();
+			const description: string = faker.lorem.paragraph();
+			const category: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
+			const city: string = faker.location.city();
+			const venue: string = faker.location.streetAddress();
+			const dateTime: string = faker.date
+				.future()
+				.toISOString()
+				.slice(0, 16);
+			const seats: string = faker.number
+				.int({ min: 1, max: 1000 })
+				.toString();
+			const price: string = faker.number
+				.int({ min: 1, max: 1000 })
+				.toString();
+			const imageUrl: string = faker.image.url();
 
-		await manageEventsPage.editEvent(
-			title,
-			description,
-			category,
-			city,
-			venue,
-			dateTime,
-			seats,
-			price,
-			imageUrl,
-			newTitle,
-			newDescription,
-			newCategory,
-			newCity,
-			newVenue,
-			newDateTime,
-			newSeats,
-			newPrice,
-			newImageUrl,
-		);
-
-		const token: string = await new LoginAPI(request).getToken(
-			TestData.email,
-			TestData.password,
-		);
-
-		const getAllEventsAPIResponse = await new GetEventListAPI(
-			request,
-		).getAllEvents(token, newCategory, newCity, newTitle);
-
-		expect(getAllEventsAPIResponse.ok()).toBeTruthy();
-
-		const responseBody = await getAllEventsAPIResponse.json();
-
-		expect(responseBody.success).toBeTruthy();
-		const id: number = responseBody.data[0].id;
-
-		const getEventByIdResponse = await new GetEventByIdAPI(
-			request,
-		).getEventById(token, id);
-
-		expect(getEventByIdResponse.ok()).toBeTruthy();
-
-		const getEventsResponseBody = await getEventByIdResponse.json();
-
-		expect(getEventsResponseBody.data.title).toBe(newTitle);
-		expect(getEventsResponseBody.data.description).toBe(newDescription);
-		expect(getEventsResponseBody.data.category).toBe(newCategory);
-		expect(getEventsResponseBody.data.venue).toBe(newVenue);
-		expect(getEventsResponseBody.data.city).toBe(newCity);
-		// expect(getEventsResponseBody.data.eventDate).toBe(dateTime);
-		expect(getEventsResponseBody.data.price).toBe(newPrice.toString());
-		expect(getEventsResponseBody.data.totalSeats.toString()).toBe(
-			newSeats,
-		);
-		expect(getEventsResponseBody.data.imageUrl).toBe(newImageUrl);
-	},
-);
-
-test(
-	'Delete a event from ui and verify details in api',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const loginPage = PageManager.getLoginPage(page);
-		await loginPage.goto();
-		await loginPage.login(TestData.email, TestData.password);
-		const homePage = PageManager.getHomePage(page);
-		await homePage.gotoManageEventsPage();
-
-		const manageEventsPage = PageManager.getManageEventsPage(page);
-		const title = faker.word.noun();
-		const description = faker.lorem.paragraph();
-		const category = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const city = faker.location.city();
-		const venue = faker.location.streetAddress();
-		const dateTime = faker.date.future().toISOString().slice(0, 16);
-		const seats = faker.number.int({ min: 1, max: 1000 }).toString();
-		const price = faker.number.int({ min: 1, max: 1000 }).toString();
-		const imageUrl = faker.image.url();
-		await manageEventsPage.createNewEvent(
-			title,
-			description,
-			category,
-			city,
-			venue,
-			dateTime,
-			seats,
-			price,
-			imageUrl,
-		);
-		await manageEventsPage.deleteEvent(title);
-
-		const token: string = await new LoginAPI(request).getToken(
-			TestData.email,
-			TestData.password,
-		);
-
-		const getAllEventsAPIResponse = await new GetEventListAPI(
-			request,
-		).getAllEvents(token, category, city, title);
-
-		expect(getAllEventsAPIResponse.ok()).toBeTruthy();
-
-		const responseBody = await getAllEventsAPIResponse.json();
-
-		expect(responseBody.success).toBeTruthy();
-		expect(responseBody.pagination.total).toBe(0);
-	},
-);
-
-test(
-	'Create a booking from api and verify details in UI',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const token: string = await new LoginAPI(request).getToken(
-			TestData.email,
-			TestData.password,
-		);
-
-		const title: string = faker.word.noun();
-		const description: string = faker.lorem.paragraph();
-		const category: string = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const city: string = faker.location.city();
-		const venue: string = faker.location.streetAddress();
-		const dateTime: string = faker.date.future().toISOString();
-		const seats: number = faker.number.int({ min: 1, max: 1000 });
-		const price: number = faker.number.int({ min: 1, max: 1000 });
-		const imageUrl: string = faker.image.url();
-
-		const email: string = faker.internet.email();
-		const name: string = faker.person.fullName();
-		const phone: string = '1234567890';
-		const quantity: number = faker.number.int({ min: 1, max: 10 });
-
-		const createEventResponse = await new CreateEventAPI(
-			request,
-		).createEvent(
-			token,
-			title,
-			description,
-			category,
-			venue,
-			city,
-			dateTime,
-			price,
-			seats,
-			imageUrl,
-		);
-
-		expect(createEventResponse.ok()).toBeTruthy();
-
-		const responseBody = await createEventResponse.json();
-		const eventId: number = responseBody.data.id;
-
-		const createBookingAPI = new CreateBookingsAPI(request);
-
-		const createBookingResponse = await createBookingAPI.createBooking(
-			token,
-			eventId,
-			name,
-			email,
-			phone,
-			quantity,
-		);
-
-		expect(createBookingResponse.ok()).toBeTruthy();
-
-		const createBookingResponseBody =
-			await createBookingResponse.json();
-
-		expect(createBookingResponseBody.success).toBeTruthy();
-		expect(createBookingResponseBody.message).toBe(
-			'Booking confirmed!',
-		);
-		expect(createBookingResponseBody.data.id).toBeDefined();
-		expect(createBookingResponseBody.data.eventId).toBe(eventId);
-		expect(createBookingResponseBody.data.customerName).toBe(name);
-		expect(createBookingResponseBody.data.customerEmail).toBe(
-			email.toLowerCase(),
-		);
-		expect(createBookingResponseBody.data.customerPhone).toBe(phone);
-		expect(createBookingResponseBody.data.quantity).toBe(quantity);
-		expect(createBookingResponseBody.data.totalPrice).toBe(
-			(quantity * price).toString(),
-		);
-		expect(createBookingResponseBody.data.status).toBe('confirmed');
-		expect(createBookingResponseBody.data.bookingRef).toBeDefined();
-
-		expect(createBookingResponseBody.data.event.id).toBeDefined();
-		expect(createBookingResponseBody.data.event.title).toBe(title);
-		expect(createBookingResponseBody.data.event.description).toBe(
-			description,
-		);
-		expect(createBookingResponseBody.data.event.category).toBe(
-			category,
-		);
-		expect(createBookingResponseBody.data.event.venue).toBe(venue);
-		expect(createBookingResponseBody.data.event.city).toBe(city);
-		expect(createBookingResponseBody.data.event.eventDate).toBe(
-			dateTime,
-		);
-		expect(createBookingResponseBody.data.event.price).toBe(
-			price.toString(),
-		);
-		expect(createBookingResponseBody.data.event.totalSeats).toBe(seats);
-
-		const eventBookingPage = PageManager.getEventBookingPage(page);
-		const homePage = PageManager.getHomePage(page);
-		const myBookingsPage = PageManager.getMyBookingsPage(page);
-
-		const loginPage = PageManager.getLoginPage(page);
-		await loginPage.goto();
-		await loginPage.login(TestData.email, TestData.password);
-
-		await homePage.gotoMyBookingsPage();
-
-		const bookingRefId =
-			await createBookingResponseBody.data.bookingRef;
-
-		const todayDate = new Intl.DateTimeFormat('en-GB', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-		}).format(new Date());
-		await myBookingsPage.verifyBookingDetails(
-			title,
-			dateTime,
-			venue + ',' + city,
-			(price * quantity).toString(),
-			quantity,
-			todayDate,
-			bookingRefId,
-		);
-	},
-);
-
-test(
-	'Create a booking from ui and verify details in api',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const token: string = await new LoginAPI(request).getToken(
-			TestData.email,
-			TestData.password,
-		);
-
-		const title: string = faker.word.noun();
-		const description: string = faker.lorem.paragraph();
-		const category: string = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const city: string = faker.location.city();
-		const venue: string = faker.location.streetAddress();
-		const dateTime: string = faker.date.future().toISOString();
-		const seats: number = faker.number.int({ min: 1, max: 1000 });
-		const price: number = faker.number.int({ min: 1, max: 1000 });
-		const imageUrl: string = faker.image.url();
-
-		const email: string = faker.internet.email();
-		const name: string = faker.person.fullName();
-		const phone: string = '1234567890';
-		const quantity: number = faker.number.int({ min: 1, max: 10 });
-
-		const createEventResponse = await new CreateEventAPI(
-			request,
-		).createEvent(
-			token,
-			title,
-			description,
-			category,
-			venue,
-			city,
-			dateTime,
-			price,
-			seats,
-			imageUrl,
-		);
-
-		expect(createEventResponse.ok()).toBeTruthy();
-
-		const eventBookingPage = PageManager.getEventBookingPage(page);
-		const homePage = PageManager.getHomePage(page);
-
-		const loginPage = PageManager.getLoginPage(page);
-		await loginPage.goto();
-		await loginPage.login(TestData.email, TestData.password);
-
-		await homePage.gotoEventsPage();
-		const [
-			eventName,
-			eventDate,
-			eventLocation,
-			eventCost,
-			eventSeatsLeft,
-		] = await homePage.readEventDetailsAndClickOnEventCardByName(title);
-		await page.waitForTimeout(2000);
-
-		await eventBookingPage.bookEvent(name, email, '1234567890');
-		await page.waitForTimeout(1000);
-		const bookingRefId = await eventBookingPage.getBookingRefId();
-
-		const getBookingByRefIdAPI = new GetBookingByRefIdAPI(request);
-		const bookingResponse =
-			await getBookingByRefIdAPI.getBookingByRefId(
-				token,
-				bookingRefId,
+			await manageEventsPage.createNewEvent(
+				title,
+				description,
+				category,
+				city,
+				venue,
+				dateTime,
+				seats,
+				price,
+				imageUrl,
 			);
 
-		expect(bookingResponse.ok()).toBeTruthy();
+			const newTitle: string = faker.word.noun();
+			const newDescription: string = faker.lorem.paragraph();
+			const newCategory: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
+			const newCity: string = faker.location.city();
+			const newVenue: string = faker.location.streetAddress();
+			const newDateTime: string = faker.date
+				.future()
+				.toISOString()
+				.slice(0, 16);
+			const newSeats: string = faker.number
+				.int({ min: 1, max: 1000 })
+				.toString();
+			const newPrice: string = faker.number
+				.int({ min: 1, max: 1000 })
+				.toString();
+			const newImageUrl: string = faker.image.url();
 
-		const createBookingResponseBody = await bookingResponse.json();
-
-		expect(createBookingResponseBody.success).toBeTruthy();
-		expect(createBookingResponseBody.data.customerName).toBe(name);
-		expect(createBookingResponseBody.data.customerEmail).toBe(
-			email.toLowerCase(),
-		);
-		expect(createBookingResponseBody.data.customerPhone).toBe(
-			'1234567890',
-		);
-		expect(createBookingResponseBody.data.quantity).toBe(1);
-		expect(createBookingResponseBody.data.totalPrice).toBe(
-			price.toString(),
-		);
-		expect(createBookingResponseBody.data.status).toBe('confirmed');
-		expect(createBookingResponseBody.data.bookingRef).toBeDefined();
-
-		expect(createBookingResponseBody.data.event.id).toBeDefined();
-		expect(createBookingResponseBody.data.event.title).toBe(title);
-		expect(createBookingResponseBody.data.event.description).toBe(
-			description,
-		);
-		expect(createBookingResponseBody.data.event.category).toBe(
-			category,
-		);
-		expect(createBookingResponseBody.data.event.venue).toBe(venue);
-		expect(createBookingResponseBody.data.event.city).toBe(city);
-		expect(createBookingResponseBody.data.event.eventDate).toBe(
-			dateTime,
-		);
-		expect(createBookingResponseBody.data.event.price).toBe(
-			price.toString(),
-		);
-		expect(createBookingResponseBody.data.event.totalSeats).toBe(seats);
-	},
-);
-
-test(
-	'Cancel a booking from ui and verify details in api',
-	{ tag: '@IntegrationTest' },
-	async ({ request, page }) => {
-		const token: string = await new LoginAPI(request).getToken(
-			TestData.email,
-			TestData.password,
-		);
-
-		const title: string = faker.word.noun();
-		const description: string = faker.lorem.paragraph();
-		const category: string = faker.helpers.arrayElement(
-			TestData.eventCategories,
-		);
-		const city: string = faker.location.city();
-		const venue: string = faker.location.streetAddress();
-		const dateTime: string = faker.date.future().toISOString();
-		const seats: number = faker.number.int({ min: 1, max: 1000 });
-		const price: number = faker.number.int({ min: 1, max: 1000 });
-		const imageUrl: string = faker.image.url();
-
-		const email: string = faker.internet.email();
-		const name: string = faker.person.fullName();
-		const phone: string = '1234567890';
-		const quantity: number = faker.number.int({ min: 1, max: 10 });
-
-		const createEventResponse = await new CreateEventAPI(
-			request,
-		).createEvent(
-			token,
-			title,
-			description,
-			category,
-			venue,
-			city,
-			dateTime,
-			price,
-			seats,
-			imageUrl,
-		);
-
-		expect(createEventResponse.ok()).toBeTruthy();
-
-		const eventBookingPage = PageManager.getEventBookingPage(page);
-		const homePage = PageManager.getHomePage(page);
-		const myBookingsPage = PageManager.getMyBookingsPage(page);
-
-		const loginPage = PageManager.getLoginPage(page);
-		await loginPage.goto();
-		await loginPage.login(TestData.email, TestData.password);
-
-		await homePage.gotoEventsPage();
-		await homePage.readEventDetailsAndClickOnEventCardByName(title);
-		await page.waitForTimeout(2000);
-
-		await eventBookingPage.bookEvent(name, email, '1234567890');
-		await page.waitForTimeout(1000);
-		const bookingRefId = await eventBookingPage.getBookingRefId();
-		await eventBookingPage.clickOnViewMyBookingsButton();
-		await myBookingsPage.cancelBooking();
-
-		const getBookingByRefIdAPI = new GetBookingByRefIdAPI(request);
-		const bookingResponse =
-			await getBookingByRefIdAPI.getBookingByRefId(
-				token,
-				bookingRefId,
+			await manageEventsPage.editEvent(
+				title,
+				description,
+				category,
+				city,
+				venue,
+				dateTime,
+				seats,
+				price,
+				imageUrl,
+				newTitle,
+				newDescription,
+				newCategory,
+				newCity,
+				newVenue,
+				newDateTime,
+				newSeats,
+				newPrice,
+				newImageUrl,
 			);
 
-		expect(bookingResponse.ok()).toBeFalsy();
+			const token: string = await new LoginAPI(request).getToken(
+				TestData.email,
+				TestData.password,
+			);
 
-		const getEventResponseBody = await bookingResponse.json();
+			const getAllEventsAPIResponse = await new GetEventListAPI(
+				request,
+			).getAllEvents(token, newCategory, newCity, newTitle);
 
-		expect(getEventResponseBody.success).toBeFalsy();
-		expect(getEventResponseBody.error).toBe(
-			`Booking with reference \"${bookingRefId}\" not found`,
-		);
-	},
-);
+			expect(getAllEventsAPIResponse.ok()).toBeTruthy();
+
+			const responseBody = await getAllEventsAPIResponse.json();
+
+			expect(responseBody.success).toBeTruthy();
+
+			const id: number = responseBody.data[0].id;
+
+			const getEventByIdResponse = await new GetEventByIdAPI(
+				request,
+			).getEventById(token, id);
+
+			expect(getEventByIdResponse.ok()).toBeTruthy();
+
+			const getEventsResponseBody =
+				await getEventByIdResponse.json();
+
+			expect(getEventsResponseBody.data.title).toBe(newTitle);
+			expect(getEventsResponseBody.data.description).toBe(
+				newDescription,
+			);
+			expect(getEventsResponseBody.data.category).toBe(newCategory);
+			expect(getEventsResponseBody.data.venue).toBe(newVenue);
+			expect(getEventsResponseBody.data.city).toBe(newCity);
+			// expect(getEventsResponseBody.data.eventDate).toBe(dateTime);
+			expect(getEventsResponseBody.data.price).toBe(
+				newPrice.toString(),
+			);
+			expect(getEventsResponseBody.data.totalSeats.toString()).toBe(
+				newSeats,
+			);
+			expect(getEventsResponseBody.data.imageUrl).toBe(newImageUrl);
+		},
+	);
+
+	test(
+		'Delete a event from ui and verify details in api',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			await loginPage.goto();
+			await loginPage.login(TestData.email, TestData.password);
+			await homePage.gotoManageEventsPage();
+
+			const title: string = faker.word.noun();
+			const description: string = faker.lorem.paragraph();
+			const category: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
+			const city: string = faker.location.city();
+			const venue: string = faker.location.streetAddress();
+			const dateTime: string = faker.date
+				.future()
+				.toISOString()
+				.slice(0, 16);
+			const seats: string = faker.number
+				.int({ min: 1, max: 1000 })
+				.toString();
+			const price: string = faker.number
+				.int({ min: 1, max: 1000 })
+				.toString();
+			const imageUrl: string = faker.image.url();
+
+			await manageEventsPage.createNewEvent(
+				title,
+				description,
+				category,
+				city,
+				venue,
+				dateTime,
+				seats,
+				price,
+				imageUrl,
+			);
+
+			await manageEventsPage.deleteEvent(title);
+
+			const token: string = await new LoginAPI(request).getToken(
+				TestData.email,
+				TestData.password,
+			);
+
+			const getAllEventsAPIResponse = await new GetEventListAPI(
+				request,
+			).getAllEvents(token, category, city, title);
+
+			expect(getAllEventsAPIResponse.ok()).toBeTruthy();
+
+			const responseBody = await getAllEventsAPIResponse.json();
+
+			expect(responseBody.success).toBeTruthy();
+			expect(responseBody.pagination.total).toBe(0);
+		},
+	);
+
+	test(
+		'Create a booking from api and verify details in UI',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			const token: string = await new LoginAPI(request).getToken(
+				TestData.email,
+				TestData.password,
+			);
+
+			const title: string = faker.word.noun();
+			const description: string = faker.lorem.paragraph();
+			const category: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
+			const city: string = faker.location.city();
+			const venue: string = faker.location.streetAddress();
+			const dateTime: string = faker.date.future().toISOString();
+			const seats: number = faker.number.int({ min: 1, max: 1000 });
+			const price: number = faker.number.int({ min: 1, max: 1000 });
+			const imageUrl: string = faker.image.url();
+			const email: string = faker.internet.email();
+			const name: string = faker.person.fullName();
+			const phone: string = '1234567890';
+			const quantity: number = faker.number.int({
+				min: 1,
+				max: 10,
+			});
+
+			const createEventResponse = await new CreateEventAPI(
+				request,
+			).createEvent(
+				token,
+				title,
+				description,
+				category,
+				venue,
+				city,
+				dateTime,
+				price,
+				seats,
+				imageUrl,
+			);
+
+			expect(createEventResponse.ok()).toBeTruthy();
+
+			const responseBody = await createEventResponse.json();
+
+			const eventId: number = responseBody.data.id;
+
+			const createBookingAPI = new CreateBookingsAPI(request);
+
+			const createBookingResponse =
+				await createBookingAPI.createBooking(
+					token,
+					eventId,
+					name,
+					email,
+					phone,
+					quantity,
+				);
+
+			expect(createBookingResponse.ok()).toBeTruthy();
+
+			const createBookingResponseBody =
+				await createBookingResponse.json();
+
+			expect(createBookingResponseBody.success).toBeTruthy();
+			expect(createBookingResponseBody.message).toBe(
+				'Booking confirmed!',
+			);
+			expect(createBookingResponseBody.data.id).toBeDefined();
+			expect(createBookingResponseBody.data.eventId).toBe(eventId);
+			expect(createBookingResponseBody.data.customerName).toBe(
+				name,
+			);
+			expect(createBookingResponseBody.data.customerEmail).toBe(
+				email.toLowerCase(),
+			);
+			expect(createBookingResponseBody.data.customerPhone).toBe(
+				phone,
+			);
+			expect(createBookingResponseBody.data.quantity).toBe(
+				quantity,
+			);
+			expect(createBookingResponseBody.data.totalPrice).toBe(
+				(quantity * price).toString(),
+			);
+			expect(createBookingResponseBody.data.status).toBe(
+				'confirmed',
+			);
+			expect(
+				createBookingResponseBody.data.bookingRef,
+			).toBeDefined();
+			expect(createBookingResponseBody.data.event.id).toBeDefined();
+			expect(createBookingResponseBody.data.event.title).toBe(
+				title,
+			);
+			expect(createBookingResponseBody.data.event.description).toBe(
+				description,
+			);
+			expect(createBookingResponseBody.data.event.category).toBe(
+				category,
+			);
+			expect(createBookingResponseBody.data.event.venue).toBe(
+				venue,
+			);
+			expect(createBookingResponseBody.data.event.city).toBe(city);
+			expect(createBookingResponseBody.data.event.eventDate).toBe(
+				dateTime,
+			);
+			expect(createBookingResponseBody.data.event.price).toBe(
+				price.toString(),
+			);
+			expect(createBookingResponseBody.data.event.totalSeats).toBe(
+				seats,
+			);
+
+			await loginPage.goto();
+			await loginPage.login(TestData.email, TestData.password);
+			await homePage.gotoMyBookingsPage();
+
+			const bookingRefId: string =
+				await createBookingResponseBody.data.bookingRef;
+			const todayDate: string = new Intl.DateTimeFormat('en-GB', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+			}).format(new Date());
+
+			await myBookingsPage.verifyBookingDetails(
+				title,
+				dateTime,
+				venue + ',' + city,
+				(price * quantity).toString(),
+				quantity,
+				todayDate,
+				bookingRefId,
+			);
+		},
+	);
+
+	test(
+		'Create a booking from ui and verify details in api',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			const token: string = await new LoginAPI(request).getToken(
+				TestData.email,
+				TestData.password,
+			);
+
+			const title: string = faker.word.noun();
+			const description: string = faker.lorem.paragraph();
+			const category: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
+			const city: string = faker.location.city();
+			const venue: string = faker.location.streetAddress();
+			const dateTime: string = faker.date.future().toISOString();
+			const seats: number = faker.number.int({ min: 1, max: 1000 });
+			const price: number = faker.number.int({ min: 1, max: 1000 });
+			const imageUrl: string = faker.image.url();
+			const email: string = faker.internet.email();
+			const name: string = faker.person.fullName();
+
+			const createEventResponse = await new CreateEventAPI(
+				request,
+			).createEvent(
+				token,
+				title,
+				description,
+				category,
+				venue,
+				city,
+				dateTime,
+				price,
+				seats,
+				imageUrl,
+			);
+
+			expect(createEventResponse.ok()).toBeTruthy();
+
+			await loginPage.goto();
+			await loginPage.login(TestData.email, TestData.password);
+			await homePage.gotoEventsPage();
+
+			await homePage.readEventDetailsAndClickOnEventCardByName(
+				title,
+			);
+
+			await page.waitForTimeout(2000);
+
+			await eventBookingPage.bookEvent(name, email, '1234567890');
+
+			await page.waitForTimeout(1000);
+
+			const bookingRefId: string =
+				await eventBookingPage.getBookingRefId();
+
+			const getBookingByRefIdAPI = new GetBookingByRefIdAPI(
+				request,
+			);
+
+			const bookingResponse =
+				await getBookingByRefIdAPI.getBookingByRefId(
+					token,
+					bookingRefId,
+				);
+
+			expect(bookingResponse.ok()).toBeTruthy();
+
+			const createBookingResponseBody =
+				await bookingResponse.json();
+
+			expect(createBookingResponseBody.success).toBeTruthy();
+			expect(createBookingResponseBody.data.customerName).toBe(
+				name,
+			);
+			expect(createBookingResponseBody.data.customerEmail).toBe(
+				email.toLowerCase(),
+			);
+			expect(createBookingResponseBody.data.customerPhone).toBe(
+				'1234567890',
+			);
+			expect(createBookingResponseBody.data.quantity).toBe(1);
+			expect(createBookingResponseBody.data.totalPrice).toBe(
+				price.toString(),
+			);
+			expect(createBookingResponseBody.data.status).toBe(
+				'confirmed',
+			);
+			expect(
+				createBookingResponseBody.data.bookingRef,
+			).toBeDefined();
+			expect(createBookingResponseBody.data.event.id).toBeDefined();
+			expect(createBookingResponseBody.data.event.title).toBe(
+				title,
+			);
+			expect(createBookingResponseBody.data.event.description).toBe(
+				description,
+			);
+			expect(createBookingResponseBody.data.event.category).toBe(
+				category,
+			);
+			expect(createBookingResponseBody.data.event.venue).toBe(
+				venue,
+			);
+			expect(createBookingResponseBody.data.event.city).toBe(city);
+			expect(createBookingResponseBody.data.event.eventDate).toBe(
+				dateTime,
+			);
+			expect(createBookingResponseBody.data.event.price).toBe(
+				price.toString(),
+			);
+			expect(createBookingResponseBody.data.event.totalSeats).toBe(
+				seats,
+			);
+		},
+	);
+
+	test(
+		'Cancel a booking from ui and verify details in api',
+		{ tag: '@IntegrationTest' },
+		async ({ request, page }) => {
+			const token: string = await new LoginAPI(request).getToken(
+				TestData.email,
+				TestData.password,
+			);
+
+			const title: string = faker.word.noun();
+			const description: string = faker.lorem.paragraph();
+			const category: string = faker.helpers.arrayElement(
+				TestData.eventCategories,
+			);
+			const city: string = faker.location.city();
+			const venue: string = faker.location.streetAddress();
+			const dateTime: string = faker.date.future().toISOString();
+			const seats: number = faker.number.int({ min: 1, max: 1000 });
+			const price: number = faker.number.int({ min: 1, max: 1000 });
+			const imageUrl: string = faker.image.url();
+			const email: string = faker.internet.email();
+			const name: string = faker.person.fullName();
+
+			const createEventResponse = await new CreateEventAPI(
+				request,
+			).createEvent(
+				token,
+				title,
+				description,
+				category,
+				venue,
+				city,
+				dateTime,
+				price,
+				seats,
+				imageUrl,
+			);
+
+			expect(createEventResponse.ok()).toBeTruthy();
+
+			await loginPage.goto();
+			await loginPage.login(TestData.email, TestData.password);
+			await homePage.gotoEventsPage();
+			await homePage.readEventDetailsAndClickOnEventCardByName(
+				title,
+			);
+
+			await page.waitForTimeout(2000);
+
+			await eventBookingPage.bookEvent(name, email, '1234567890');
+
+			await page.waitForTimeout(1000);
+
+			const bookingRefId: string =
+				await eventBookingPage.getBookingRefId();
+
+			await eventBookingPage.clickOnViewMyBookingsButton();
+			await myBookingsPage.cancelBooking();
+
+			const getBookingByRefIdAPI = new GetBookingByRefIdAPI(
+				request,
+			);
+
+			const bookingResponse =
+				await getBookingByRefIdAPI.getBookingByRefId(
+					token,
+					bookingRefId,
+				);
+
+			expect(bookingResponse.ok()).toBeFalsy();
+
+			const getEventResponseBody = await bookingResponse.json();
+
+			expect(getEventResponseBody.success).toBeFalsy();
+			expect(getEventResponseBody.error).toBe(
+				`Booking with reference \"${bookingRefId}\" not found`,
+			);
+		},
+	);
+});
