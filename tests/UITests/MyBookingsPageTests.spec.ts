@@ -15,11 +15,13 @@ test.describe('Booking Details Test', () => {
 	let myBookingsPage: MyBookingsPage;
 	let bookingDetailsPage: BookingDetailsPage;
 
-	test.beforeEach(async ({ page }) => {
-		homePage = PageManager.getHomePage(page);
-		eventBookingPage = PageManager.getEventBookingPage(page);
-		myBookingsPage = PageManager.getMyBookingsPage(page);
-		bookingDetailsPage = PageManager.getBookingDetailsPage(page);
+	test.beforeEach(async ({ authenticatedPage }) => {
+		homePage = PageManager.getHomePage(authenticatedPage);
+		eventBookingPage =
+			PageManager.getEventBookingPage(authenticatedPage);
+		myBookingsPage = PageManager.getMyBookingsPage(authenticatedPage);
+		bookingDetailsPage =
+			PageManager.getBookingDetailsPage(authenticatedPage);
 		await homePage.clickOnBrowseEventsButton();
 	});
 
