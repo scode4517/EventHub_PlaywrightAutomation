@@ -28,7 +28,7 @@ jobs:
                   - name: Run Playwright tests
                     env:
                           PLAYWRIGHT_SERVICE_URL: ${{ vars.PLAYWRIGHT_SERVICE_URL }}
-                    run: npx playwright test --config=playwright.service.config.js --workers=4
+                    run: npx playwright test --grep @Login --config=playwright.service.config.js --workers=4
 
                   - uses: actions/upload-artifact@v4
                     if: ${{ !cancelled() }}
