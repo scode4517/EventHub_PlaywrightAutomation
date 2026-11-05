@@ -31,16 +31,6 @@ jobs:
                           PLAYWRIGHT_SERVICE_URL: ${{ vars.PLAYWRIGHT_SERVICE_URL }}
                     run: npx playwright test --grep @Login --config=playwright.service.config.js --workers=4
 
-                  - name: Archive Playwright report
-                    id: archive-report
-                    if: ${{ always() }}
-                    run: |
-                          if [ ! -d playwright-report ]; then
-                            echo "Playwright report directory was not generated." >&2
-                            exit 1
-                          fi
-                          zip -r playwright-report.zip playwright-report
-
                   - uses: actions/upload-artifact@v4
                     if: ${{ !cancelled() }}
                     with:
@@ -48,21 +38,37 @@ jobs:
                           path: playwright-report/
                           retention-days: 30
 
-                  - name: Email Playwright report
-                    if: ${{ always() && !cancelled() }}
+                  - name: Playwright Report zipping
+                    if: always()
+                    run: zip -r playwright-report.zip playwright-report/
+
+                  - name: Send Email Notification
+                    if: always()
                     uses: dawidd6/action-send-mail@v3
                     with:
-                          server_address: ${{ vars.SMTP_SERVER }}
-                          server_port: ${{ vars.SMTP_PORT }}
-                          secure: ${{ vars.SMTP_SECURE == 'true' }}
+                          # SMTP Server Configuration (Example using Gmail)
+                          server_address: smtp.gmail.com
+                          server_port: 465
+                          secure: true
                           username: ${{ secrets.SMTP_USERNAME }}
                           password: ${{ secrets.SMTP_PASSWORD }}
-                          subject: Playwright test report - ${{ job.status }}
-                          to: ${{ vars.REPORT_EMAIL_TO }}
-                          from: ${{ secrets.SMTP_USERNAME }}
-                          body: |
-                                The Playwright test run has completed.
 
-                                Result: ${{ steps.playwright-tests.outcome }}
-                                Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                          # Email Content Configuration
+                          subject: 'Playwright Test Run Status: ${{ job.status }}'
+                          to: ${{ vars.REPORT_EMAIL_TO }}
+                          from: Playwright CI <${{ secrets.SMTP_USERNAME }}>
+                          body: |
+                                The Playwright test execution has finished.
+
+                                Workflow Status: ${{ job.status }}
+                                Repository: ${{ github.repository }}
+                                Branch: ${{ github.ref_name }}
+                                Commit: ${{ github.sha }}
+
+                                You can view the full workflow run details here:
+                                https://github.com{{ github.repository }}/actions/runs/${{ github.run_id }}
+
+                                Please find the attached test execution report.
+
+                          # Attach the zipped HTML report
                           attachments: playwright-report.zip
