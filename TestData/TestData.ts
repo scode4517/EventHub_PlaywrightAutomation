@@ -2,7 +2,7 @@
 
 export class TestData {
 	static readonly email: string = 'testscode@gmail.com';
-	static readonly password: string = 'Qwertyuiop@2g';
+	static readonly password: string = '';
 	static readonly categoryFilterOptions: string[] = [
 		'Conference',
 		'Concert',
