@@ -7,6 +7,7 @@ export class AuthMeAPI {
 	private request: APIRequestContext;
 
 	constructor(request: APIRequestContext) {
+		//This
 		this.request = request;
 	}
 
