@@ -49,7 +49,7 @@ jobs:
                           zip -r playwright-report.zip playwright-report/
 
                   - name: Send Email Notification
-                    if: ${{ always() && steps.archive-report.outcome == 'success' }}
+                    if: ${{ always() }}
                     uses: dawidd6/action-send-mail@v3
                     with:
                           # SMTP Server Configuration (Example using Gmail)
@@ -74,4 +74,4 @@ jobs:
                                 View the workflow run and download the Playwright report artifact:
                                 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-                          attachments: playwright-report.zip
+                          #   attachments: playwright-report.zip
