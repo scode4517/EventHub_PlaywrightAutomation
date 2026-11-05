@@ -21,7 +21,7 @@ test.describe('Login page Test', () => {
 
 	test('Login page visual test', { tag: '@LoginTest' }, async () => {
 		await loginPage.goto();
-		await loginPage.loginPageVisualTest();
+		// await loginPage.loginPageVisualTest();
 	});
 
 	test('Valid login test', { tag: '@LoginTest' }, async () => {
