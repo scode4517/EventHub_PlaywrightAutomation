@@ -26,9 +26,10 @@ jobs:
                           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
                   - name: Run Playwright tests
+                    id: playwright-tests
                     env:
                           PLAYWRIGHT_SERVICE_URL: ${{ vars.PLAYWRIGHT_SERVICE_URL }}
-                    run: npx playwright test --config=playwright.service.config.js --workers=4
+                    run: npx playwright test --grep @Login --config=playwright.service.config.js --workers=4
 
                   - uses: actions/upload-artifact@v4
                     if: ${{ !cancelled() }}
@@ -36,3 +37,41 @@ jobs:
                           name: playwright-report
                           path: playwright-report/
                           retention-days: 30
+
+                  - name: Zip Playwright report
+                    id: archive-report
+                    if: always()
+                    run: |
+                          if [ ! -d playwright-report ]; then
+                            echo "Playwright report directory was not generated." >&2
+                            exit 1
+                          fi
+                          zip -r playwright-report.zip playwright-report/
+
+                  - name: Send Email Notification
+                    if: ${{ always() }}
+                    uses: dawidd6/action-send-mail@v3
+                    with:
+                          # SMTP Server Configuration (Example using Gmail)
+                          server_address: smtp.gmail.com
+                          server_port: 465
+                          secure: true
+                          username: ${{ secrets.SMTP_USERNAME }}
+                          password: ${{ secrets.SMTP_PASSWORD }}
+
+                          # Email Content Configuration
+                          subject: 'Playwright Test Run Status: ${{ job.status }}'
+                          to: ${{ vars.REPORT_EMAIL_TO }}
+                          from: Playwright CI <${{ secrets.SMTP_USERNAME }}>
+                          body: |
+                                The Playwright test execution has finished.
+
+                                Workflow Status: ${{ job.status }}
+                                Repository: ${{ github.repository }}
+                                Branch: ${{ github.ref_name }}
+                                Commit: ${{ github.sha }}
+
+                                View the workflow run and download the Playwright report artifact:
+                                ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+                          #   attachments: playwright-report.zip
