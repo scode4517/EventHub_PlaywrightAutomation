@@ -38,12 +38,18 @@ jobs:
                           path: playwright-report/
                           retention-days: 30
 
-                  - name: Playwright Report zipping
+                  - name: Zip Playwright report
+                    id: archive-report
                     if: always()
-                    run: zip -r playwright-report.zip playwright-report/
+                    run: |
+                          if [ ! -d playwright-report ]; then
+                            echo "Playwright report directory was not generated." >&2
+                            exit 1
+                          fi
+                          zip -r playwright-report.zip playwright-report/
 
                   - name: Send Email Notification
-                    if: always()
+                    if: ${{ always() && steps.archive-report.outcome == 'success' }}
                     uses: dawidd6/action-send-mail@v3
                     with:
                           # SMTP Server Configuration (Example using Gmail)
@@ -65,10 +71,7 @@ jobs:
                                 Branch: ${{ github.ref_name }}
                                 Commit: ${{ github.sha }}
 
-                                You can view the full workflow run details here:
-                                https://github.com{{ github.repository }}/actions/runs/${{ github.run_id }}
+                                View the workflow run and download the Playwright report artifact:
+                                ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-                                Please find the attached test execution report.
-
-                          # Attach the zipped HTML report
                           attachments: playwright-report.zip
