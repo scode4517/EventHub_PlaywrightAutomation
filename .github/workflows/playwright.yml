@@ -26,9 +26,20 @@ jobs:
                           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
                   - name: Run Playwright tests
+                    id: playwright-tests
                     env:
                           PLAYWRIGHT_SERVICE_URL: ${{ vars.PLAYWRIGHT_SERVICE_URL }}
                     run: npx playwright test --grep @Login --config=playwright.service.config.js --workers=4
+
+                  - name: Archive Playwright report
+                    id: archive-report
+                    if: ${{ always() }}
+                    run: |
+                          if [ ! -d playwright-report ]; then
+                            echo "Playwright report directory was not generated." >&2
+                            exit 1
+                          fi
+                          zip -r playwright-report.zip playwright-report
 
                   - uses: actions/upload-artifact@v4
                     if: ${{ !cancelled() }}
@@ -36,3 +47,22 @@ jobs:
                           name: playwright-report
                           path: playwright-report/
                           retention-days: 30
+
+                  - name: Email Playwright report
+                    if: ${{ always() && !cancelled() }}
+                    uses: dawidd6/action-send-mail@v3
+                    with:
+                          server_address: ${{ vars.SMTP_SERVER }}
+                          server_port: ${{ vars.SMTP_PORT }}
+                          secure: ${{ vars.SMTP_SECURE == 'true' }}
+                          username: ${{ secrets.SMTP_USERNAME }}
+                          password: ${{ secrets.SMTP_PASSWORD }}
+                          subject: Playwright test report - ${{ job.status }}
+                          to: ${{ vars.REPORT_EMAIL_TO }}
+                          from: ${{ secrets.SMTP_USERNAME }}
+                          body: |
+                                The Playwright test run has completed.
+
+                                Result: ${{ steps.playwright-tests.outcome }}
+                                Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                          attachments: playwright-report.zip
